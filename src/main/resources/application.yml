@@ -1,0 +1,21 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: kube-manager
+  datasource:
+    url: jdbc:mysql://47.100.137.154:3306/kube_manager?serverTimezone=Asia/Shanghai
+    hikari:
+      username: kube_manager
+      password: Kube123!@#
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+logging:
+  level:
+    com.cgm.kube.account: debug
+    com.cgm.kube.client: debug
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
