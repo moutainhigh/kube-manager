@@ -2,6 +2,7 @@ package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.account.entity.User;
 import com.cgm.kube.account.service.IUserService;
+import com.cgm.kube.base.BaseException;
 import com.cgm.kube.client.constant.KubeConstant;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
@@ -55,7 +56,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         if (ResourceFormatter.formatCpu(deployment.getCpuLimits()) > user.getCpuLimits()
                 || ResourceFormatter.formatMem(deployment.getMemLimits()) > user.getMemLimits()
                 || ResourceFormatter.formatGpu(deployment.getGpuLimits()) > user.getGpuLimits()) {
-            throw new IllegalArgumentException("超过了资源限制");
+            throw new BaseException("超过了资源限制");
         }
 
         V1Deployment kubeDeployment = deployment.toKube();

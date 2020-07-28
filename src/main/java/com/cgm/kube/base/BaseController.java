@@ -44,14 +44,15 @@ public class BaseController {
         Throwable thr = Throwables.getRootCause(exception);
         if (notModelAndView(request)) {
             ResponseData res = new ResponseData(false);
-            if (thr instanceof IBaseException) {
-                IBaseException be = (IBaseException) thr;
+            if (thr instanceof BaseException) {
+                // 通用异常处理
+                BaseException be = (BaseException) thr;
                 Locale locale = RequestContextUtils.getLocale(request);
-                String messageKey = be.getDescriptionKey();
-                String message = messageSource.getMessage(messageKey, be.getParameters(), messageKey, locale);
+                String message = messageSource.getMessage(be.getCode(), null, locale);
                 res.setCode(be.getCode());
                 res.setMessage(message);
             } else if (thr instanceof ApiException) {
+                // 来自k8s api-server的异常
                 ApiException ae = (ApiException) thr;
                 res.setCode(String.valueOf(ae.getCode()));
                 Map<String, Object> map = JSON.parseObject(ae.getResponseBody());
@@ -61,12 +62,12 @@ public class BaseController {
             }
             return res;
         } else {
+            // 返回mv，本项目暂不存在mv
             ModelAndView view = new ModelAndView("500");
-            if (thr instanceof IBaseException) {
-                IBaseException be = (IBaseException) thr;
+            if (thr instanceof BaseException) {
+                BaseException be = (BaseException) thr;
                 Locale locale = RequestContextUtils.getLocale(request);
-                String messageKey = be.getDescriptionKey();
-                String message = messageSource.getMessage(messageKey, be.getParameters(), messageKey, locale);
+                String message = messageSource.getMessage(be.getCode(), null, locale);
                 view.addObject("message", message);
             }
             return view;

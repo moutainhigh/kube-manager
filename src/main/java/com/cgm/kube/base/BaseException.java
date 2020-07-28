@@ -1,60 +1,56 @@
 package com.cgm.kube.base;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * 基础异常实现
+ * 通用异常
+ *
  * @author cgm
  */
-public abstract class BaseException extends Exception implements IBaseException {
-    private static final long serialVersionUID = 1L;
-    /**
-     * 异常代码
-     */
-    private String code;
-    /**
-     * 异常描述的key
-     */
-    private String descriptionKey;
+public class BaseException extends RuntimeException {
 
     /**
-     * 参数数组
+     * 错误编码
+     * 无编码时，使用错误提示信息
      */
-    private Object[] parameters;
+    private final String code;
 
-    public BaseException(String code, String descriptionKey, Object... parameters) {
-        super(descriptionKey);
+    /**
+     * 构造器
+     *
+     * @param code 异常code
+     */
+    public BaseException(String code) {
+        super(code);
         this.code = code;
-        this.descriptionKey = descriptionKey;
-        this.parameters = parameters;
     }
 
-    @Override
+    public BaseException(String code, Throwable cause) {
+        super(code, cause);
+        this.code = code;
+    }
+
     public String getCode() {
-        return this.code;
+        return code;
     }
 
-    @Override
-    public String getDescriptionKey() {
-        return this.descriptionKey;
+    public String getTrace() {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(outputStream);
+        this.printStackTrace(ps);
+        ps.flush();
+        return new String(outputStream.toByteArray());
     }
 
-    @Override
-    public Object[] getParameters() {
-        return this.parameters;
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("code", code);
+        map.put("message", super.getMessage());
+        return map;
     }
 
-    @Override
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    @Override
-    public void setDescriptionKey(String descriptionKey) {
-        this.descriptionKey = descriptionKey;
-    }
-
-    @Override
-    public void setParameters(Object[] parameters) {
-        this.parameters = parameters;
-    }
 }
