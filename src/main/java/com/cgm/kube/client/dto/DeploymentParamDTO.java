@@ -7,7 +7,13 @@ import lombok.Data;
  */
 @Data
 public class DeploymentParamDTO {
+
     private String name;
-    private Integer replicas;
-    private String availableStatus;
+    private String resourceType;
+    private String status;
+
+    private Integer page;
+    private Integer limit;
+    private String sort;
+
 }

@@ -31,6 +31,9 @@ public class UserDeploymentDTO {
     @ApiModelProperty(value = "镜像", example = "centos:latest")
     private String image;
 
+    @ApiModelProperty(value = "资源类型", example = "CPU")
+    private String resourceType;
+
     @ApiModelProperty(value = "cpu要求（单位：m，千分之一核）", example = "500m")
     private String cpuRequests;
 
@@ -43,22 +46,25 @@ public class UserDeploymentDTO {
     @ApiModelProperty(value = "cpu上限（单位：m，千分之一核）", example = "800m")
     private String cpuLimits;
 
-    @ApiModelProperty(value = "gpu上限（单位：自然数，一个）", example = "2")
-    private String gpuLimits;
-
     @ApiModelProperty(value = "内存上限（单位：Mi，兆字节）", example = "256Mi")
     private String memLimits;
 
     @ApiModelProperty("标签")
     private Map<String, String> labels;
 
-    @ApiModelProperty("可用的副本数量")
+    @ApiModelProperty(value = "创建时间", hidden = true)
+    private Long creationTimestamp;
+
+    @ApiModelProperty(value = "可用的副本数量", hidden = true)
     private Integer availableReplicas;
 
-    @ApiModelProperty("可用状态")
+    @ApiModelProperty(value = "状态", hidden = true)
+    private String status;
+
+    @ApiModelProperty(value = "可用状态", hidden = true)
     private String availableStatus;
 
-    @ApiModelProperty("执行状态")
+    @ApiModelProperty(value = "执行状态", hidden = true)
     private String progressingStatus;
 
 
@@ -72,7 +78,7 @@ public class UserDeploymentDTO {
      * @param kubeDeployment kubeDeployment
      */
     public UserDeploymentDTO(V1Deployment kubeDeployment) {
-        // 创建时的信息
+        // 创建时的基本信息
         Assert.notNull(kubeDeployment, KubeConstant.ErrorCode.NO_FIELD);
         Assert.isTrue(kubeDeployment.getMetadata() != null, KubeConstant.ErrorCode.NO_FIELD);
         this.name = kubeDeployment.getMetadata().getName();
@@ -85,27 +91,42 @@ public class UserDeploymentDTO {
 
         Assert.isTrue(spec.getTemplate().getSpec() != null, KubeConstant.ErrorCode.NO_FIELD);
         V1PodSpec templateSpec = spec.getTemplate().getSpec();
-        V1Container container =  templateSpec.getContainers().get(0);
+        V1Container container = templateSpec.getContainers().get(0);
         this.image = container.getImage();
 
+        // 资源信息
         V1ResourceRequirements resource = container.getResources();
         Assert.isTrue(resource != null, KubeConstant.ErrorCode.NO_FIELD);
-        Assert.isTrue(resource.getLimits() != null, KubeConstant.ErrorCode.NO_FIELD);
-        Assert.isTrue(resource.getRequests() != null, KubeConstant.ErrorCode.NO_FIELD);
-        this.cpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
-        this.memRequests = resource.getRequests().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
-        this.gpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_GPU).toSuffixedString();
-        this.cpuLimits = resource.getLimits().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
-        this.memLimits = resource.getLimits().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
+        if (resource.getLimits() != null) {
+            this.cpuLimits = resource.getLimits().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
+            this.memLimits = resource.getLimits().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
+        } else {
+            this.cpuLimits = KubeConstant.RESOURCE_CPU_DEFAULT;
+            this.memLimits = KubeConstant.RESOURCE_MEM_DEFAULT;
+        }
+        if (resource.getRequests() != null) {
+            this.cpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
+            this.memRequests = resource.getRequests().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
+            this.gpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_GPU).toSuffixedString();
+        } else {
+            this.cpuRequests = KubeConstant.RESOURCE_CPU_DEFAULT;
+            this.memRequests = KubeConstant.RESOURCE_MEM_DEFAULT;
+            this.gpuRequests = KubeConstant.RESOURCE_GPU_DEFAULT;
+        }
+        this.resourceType = KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.gpuRequests) ? "CPU" : "GPU";
 
-        // 运行状态
-        V1DeploymentStatus status = kubeDeployment.getStatus();
-        Assert.isTrue(status != null, KubeConstant.ErrorCode.NO_FIELD);
-        this.availableReplicas = status.getAvailableReplicas();
 
-        List<V1DeploymentCondition> conditionList = status.getConditions();
+        // 各状态指标
+        this.creationTimestamp = Objects.requireNonNull(kubeDeployment.getMetadata().getCreationTimestamp()).getMillis();
+        V1DeploymentStatus deploymentStatus = kubeDeployment.getStatus();
+        Assert.isTrue(deploymentStatus != null, KubeConstant.ErrorCode.NO_FIELD);
+        this.availableReplicas = deploymentStatus.getAvailableReplicas() == null ?
+                0 : deploymentStatus.getAvailableReplicas();
+        this.status = this.availableReplicas < this.replicas ? KubeConstant.STATUS_FAILED : KubeConstant.STATUS_READY;
+
+        List<V1DeploymentCondition> conditionList = deploymentStatus.getConditions();
         Assert.isTrue(conditionList != null, KubeConstant.ErrorCode.NO_FIELD);
-        for (V1DeploymentCondition condition: conditionList) {
+        for (V1DeploymentCondition condition : conditionList) {
             if ("Available".equals(condition.getType())) {
                 this.availableStatus = condition.getStatus();
             }
@@ -152,10 +173,10 @@ public class UserDeploymentDTO {
         requestsMap.put("cpu", new Quantity(this.getCpuRequests()));
         requestsMap.put("memory", new Quantity(this.getMemRequests()));
         requestsMap.put("nvidia.com/gpu", new Quantity(this.getGpuRequests()));
+        // GPU资源不可伸缩，所以没有gpuLimits
         Map<String, Quantity> limitsMap = new HashMap<>(3);
         limitsMap.put("cpu", new Quantity(this.getCpuLimits()));
         limitsMap.put("memory", new Quantity(this.getMemLimits()));
-        limitsMap.put("nvidia.com/gpu", new Quantity(this.getGpuLimits()));
         V1ResourceRequirements resource = new V1ResourceRequirements()
                 .requests(requestsMap)
                 .limits(limitsMap);
