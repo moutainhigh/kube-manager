@@ -47,18 +47,19 @@ public class BaseController {
             if (thr instanceof BaseException) {
                 // 通用异常处理
                 BaseException be = (BaseException) thr;
-                Locale locale = RequestContextUtils.getLocale(request);
-                String message = messageSource.getMessage(be.getCode(), null, locale);
                 res.setCode(be.getCode());
-                res.setMessage(message);
+                res.setMessage(be.getMessage());
+                res.setRows(be.getTrace());
             } else if (thr instanceof ApiException) {
                 // 来自k8s api-server的异常
                 ApiException ae = (ApiException) thr;
                 res.setCode(String.valueOf(ae.getCode()));
                 Map<String, Object> map = JSON.parseObject(ae.getResponseBody());
-                res.setMessage(ae.getMessage() + ": " + map.get("message"));
+                res.setMessage(ae.getMessage());
+                res.setRows(map.get("message"));
             } else {
-                res.setMessage(thr.toString());
+                // 其他异常
+                res.setMessage(thr.getMessage());
             }
             return res;
         } else {

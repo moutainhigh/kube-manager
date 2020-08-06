@@ -53,7 +53,17 @@ public class DeploymentController extends BaseController {
     @PutMapping("/update")
     public ResponseData updateDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @RequestBody UserDeploymentDTO deployment) {
+            @RequestBody UserDeploymentDTO deployment) throws ApiException {
+        deploymentService.updateDeployment(deployment);
+        return new ResponseData();
+    }
+
+    @ApiOperation("缩放deployment")
+    @PatchMapping("/scale")
+    public ResponseData patchDeploymentScale(
+            @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
+            @RequestBody UserDeploymentDTO deployment) throws ApiException {
+        deploymentService.patchDeploymentScale(deployment);
         return new ResponseData();
     }
 
@@ -61,7 +71,8 @@ public class DeploymentController extends BaseController {
     @DeleteMapping("/delete")
     public ResponseData deleteDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) {
+            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) throws ApiException {
+        deploymentService.deleteDeployment(organizationId, name);
         return new ResponseData();
     }
 

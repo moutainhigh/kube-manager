@@ -19,11 +19,14 @@ import java.util.*;
 @Data
 @ApiModel("提供给用户的deployment类")
 public class UserDeploymentDTO {
+    @ApiModelProperty(value = "唯一标识", hidden = true)
+    private String uid;
+
     @ApiModelProperty("名称（必须以字母开头，只能包含字母/数字/中划线）")
     private String name;
 
     @ApiModelProperty("命名空间")
-    private String nameSpace;
+    private String namespace;
 
     @ApiModelProperty(value = "副本数量", example = "1")
     private Integer replicas;
@@ -37,9 +40,6 @@ public class UserDeploymentDTO {
     @ApiModelProperty(value = "cpu要求（单位：m，千分之一核）", example = "500m")
     private String cpuRequests;
 
-    @ApiModelProperty(value = "gpu要求（单位：自然数，一个）", example = "1")
-    private String gpuRequests;
-
     @ApiModelProperty(value = "内存要求（单位：Mi，兆字节）", example = "200Mi")
     private String memRequests;
 
@@ -48,6 +48,9 @@ public class UserDeploymentDTO {
 
     @ApiModelProperty(value = "内存上限（单位：Mi，兆字节）", example = "256Mi")
     private String memLimits;
+
+    @ApiModelProperty(value = "gpu要求（单位：自然数，一个）", example = "1")
+    private String gpuLimits;
 
     @ApiModelProperty("标签")
     private Map<String, String> labels;
@@ -81,8 +84,9 @@ public class UserDeploymentDTO {
         // 创建时的基本信息
         Assert.notNull(kubeDeployment, KubeConstant.ErrorCode.NO_FIELD);
         Assert.isTrue(kubeDeployment.getMetadata() != null, KubeConstant.ErrorCode.NO_FIELD);
+        this.uid = kubeDeployment.getMetadata().getUid();
         this.name = kubeDeployment.getMetadata().getName();
-        this.nameSpace = kubeDeployment.getMetadata().getNamespace();
+        this.namespace = kubeDeployment.getMetadata().getNamespace();
         this.labels = kubeDeployment.getMetadata().getLabels();
 
         Assert.isTrue(kubeDeployment.getSpec() != null, KubeConstant.ErrorCode.NO_FIELD);
@@ -97,23 +101,26 @@ public class UserDeploymentDTO {
         // 资源信息
         V1ResourceRequirements resource = container.getResources();
         Assert.isTrue(resource != null, KubeConstant.ErrorCode.NO_FIELD);
-        if (resource.getLimits() != null) {
-            this.cpuLimits = resource.getLimits().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
-            this.memLimits = resource.getLimits().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
-        } else {
-            this.cpuLimits = KubeConstant.RESOURCE_CPU_DEFAULT;
-            this.memLimits = KubeConstant.RESOURCE_MEM_DEFAULT;
-        }
         if (resource.getRequests() != null) {
             this.cpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
             this.memRequests = resource.getRequests().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
-            this.gpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_GPU).toSuffixedString();
+
         } else {
-            this.cpuRequests = KubeConstant.RESOURCE_CPU_DEFAULT;
-            this.memRequests = KubeConstant.RESOURCE_MEM_DEFAULT;
-            this.gpuRequests = KubeConstant.RESOURCE_GPU_DEFAULT;
+            this.cpuRequests = KubeConstant.RESOURCE_NOT_SET;
+            this.memRequests = KubeConstant.RESOURCE_NOT_SET;
         }
-        this.resourceType = KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.gpuRequests) ? "CPU" : "GPU";
+        if (resource.getLimits() != null) {
+            this.cpuLimits = resource.getLimits().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
+            this.memLimits = resource.getLimits().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
+            Quantity gpuLimitsQuantity = resource.getLimits().get(KubeConstant.RESOURCE_GPU);
+            this.gpuLimits = gpuLimitsQuantity == null ?
+                    KubeConstant.RESOURCE_GPU_DEFAULT : gpuLimitsQuantity.toSuffixedString();
+        } else {
+            this.cpuLimits = KubeConstant.RESOURCE_NOT_SET;
+            this.memLimits = KubeConstant.RESOURCE_NOT_SET;
+            this.gpuLimits = KubeConstant.RESOURCE_GPU_DEFAULT;
+        }
+        this.resourceType = KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.gpuLimits) ? "CPU" : "GPU";
 
 
         // 各状态指标
@@ -163,20 +170,23 @@ public class UserDeploymentDTO {
      * @return deployment
      */
     public V1Deployment toKube() {
+        this.labels = this.labels == null ? new HashMap<>(1) : this.labels;
+        this.labels.put("app", this.image.split(":")[0]);
         V1ObjectMeta metaData = new V1ObjectMeta()
                 .name(this.getName())
-                .namespace(this.getNameSpace())
+                .namespace(this.getNamespace())
                 .labels(this.getLabels());
 
         // 资源需求，spec->template->spec->containers->resources
         Map<String, Quantity> requestsMap = new HashMap<>(3);
         requestsMap.put("cpu", new Quantity(this.getCpuRequests()));
         requestsMap.put("memory", new Quantity(this.getMemRequests()));
-        requestsMap.put("nvidia.com/gpu", new Quantity(this.getGpuRequests()));
-        // GPU资源不可伸缩，所以没有gpuLimits
         Map<String, Quantity> limitsMap = new HashMap<>(3);
         limitsMap.put("cpu", new Quantity(this.getCpuLimits()));
         limitsMap.put("memory", new Quantity(this.getMemLimits()));
+        if (!KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.getGpuLimits())) {
+            limitsMap.put("nvidia.com/gpu", new Quantity(this.getGpuLimits()));
+        }
         V1ResourceRequirements resource = new V1ResourceRequirements()
                 .requests(requestsMap)
                 .limits(limitsMap);

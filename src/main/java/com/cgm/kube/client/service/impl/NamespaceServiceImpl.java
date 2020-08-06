@@ -27,9 +27,15 @@ public class NamespaceServiceImpl implements INamespaceService {
         User user = userService.findById(10000001L);
         Assert.isTrue(user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN), "无权操作！");
 
+        String name = "ns" + organizationId;
+        this.initNamespace(name);
+    }
+
+    @Override
+    public void initNamespace(String name) throws ApiException {
         CoreV1Api api = new CoreV1Api();
         V1ObjectMeta meta = new V1ObjectMeta()
-                .name("ns" + organizationId);
+                .name(name);
         V1Namespace namespace = new V1Namespace()
                 .apiVersion("v1")
                 .kind("Namespace")

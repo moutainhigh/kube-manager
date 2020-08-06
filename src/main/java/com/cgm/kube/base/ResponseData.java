@@ -21,12 +21,15 @@ public class ResponseData {
 
     /**
      * 提示信息
+     * 通常直接在前端展示
      */
     @JsonInclude(Include.NON_NULL)
     private String message;
 
     /**
      * 数据
+     * 发生异常时，返回异常堆栈，供开发人员定位问题
+     * 调用外部接口时，使用外部接口的错误信息，不返回无意义的内部异常堆栈
      */
     @JsonInclude(Include.NON_NULL)
     private Object rows;

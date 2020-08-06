@@ -18,9 +18,7 @@ public class KubeConstant {
 
     public static final String RESOURCE_GPU = "nvidia.com/gpu";
 
-    public static final String RESOURCE_CPU_DEFAULT = "未设置";
-
-    public static final String RESOURCE_MEM_DEFAULT = "未设置";
+    public static final String RESOURCE_NOT_SET = "未设置";
 
     public static final String RESOURCE_GPU_DEFAULT = "0";
 
@@ -43,8 +41,8 @@ public class KubeConstant {
 
         }
 
-        public static final String NO_FIELD = "查询异常：结果中需要的字段为空值";
+        public static final String QUERY_FAILED = "查询失败";
 
-        public static final String NO_RESULT = "查询不到指定的内容";
+        public static final String NO_FIELD = "查询异常，内容缺失";
     }
 }
