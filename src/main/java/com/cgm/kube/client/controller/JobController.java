@@ -20,15 +20,15 @@ public class JobController {
     private IJobService jobService;
 
     @ApiOperation("查询job")
-    @GetMapping("/query")
+    @GetMapping("/{name}")
     public ResponseData getJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) {
+            @ApiParam(value = "名称", required = true, example = "name") @PathVariable String name) {
         return new ResponseData();
     }
 
     @ApiOperation("创建job")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseData createJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "配置", required = true) @RequestBody UserJobDTO job) {
@@ -37,13 +37,13 @@ public class JobController {
     }
 
     @ApiOperation("更新job")
-    @PutMapping("/update")
+    @PutMapping
     public ResponseData updateJob(@PathVariable Long organizationId, @RequestBody UserJobDTO job) {
         return new ResponseData();
     }
 
     @ApiOperation("删除job")
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseData deleteJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name){

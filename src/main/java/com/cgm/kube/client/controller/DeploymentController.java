@@ -25,15 +25,15 @@ public class DeploymentController extends BaseController {
     private IDeploymentService deploymentService;
 
     @ApiOperation("查询deployment")
-    @GetMapping("/get")
+    @GetMapping("/{name}")
     public ResponseData getDeploymentByName(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) throws ApiException {
+            @ApiParam(value = "名称", required = true, example = "name") @PathVariable String name) throws ApiException {
         return new ResponseData(deploymentService.getDeploymentByName(organizationId, name));
     }
 
     @ApiOperation("查询deployment列表")
-    @GetMapping("/list")
+    @GetMapping
     public ResponseData listDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             DeploymentParamDTO paramDTO) throws ApiException {
@@ -41,7 +41,7 @@ public class DeploymentController extends BaseController {
     }
 
     @ApiOperation("创建deployment")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseData createDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @RequestBody UserDeploymentDTO deployment) throws ApiException, IOException {
@@ -50,7 +50,7 @@ public class DeploymentController extends BaseController {
     }
 
     @ApiOperation("更新deployment")
-    @PutMapping("/update")
+    @PutMapping
     public ResponseData updateDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @RequestBody UserDeploymentDTO deployment) throws ApiException {
@@ -68,7 +68,7 @@ public class DeploymentController extends BaseController {
     }
 
     @ApiOperation("删除deployment")
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseData deleteDeployment(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) throws ApiException {

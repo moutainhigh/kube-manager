@@ -20,15 +20,15 @@ public class CronJobController {
     private ICronJobService cronJobService;
 
     @ApiOperation("查询cronJob")
-    @GetMapping("/query")
+    @GetMapping("/{name}")
     public ResponseData getCronJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) {
+            @ApiParam(value = "名称", required = true, example = "name") @PathVariable String name) {
         return new ResponseData();
     }
 
     @ApiOperation("创建cronJob")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseData createCronJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "配置", required = true) @RequestBody UserCronJobDTO cronJob){
@@ -37,13 +37,13 @@ public class CronJobController {
     }
 
     @ApiOperation("更新cronJob")
-    @PutMapping("/update")
+    @PutMapping
     public ResponseData updateCronJob(@PathVariable Long organizationId, @RequestBody UserCronJobDTO cronJob) {
         return new ResponseData();
     }
 
     @ApiOperation("删除cronJob")
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseData deleteCronJob(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name){

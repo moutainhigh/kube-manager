@@ -21,15 +21,15 @@ public class PodController {
     private IPodService podService;
 
     @ApiOperation("查询pod")
-    @GetMapping("/query")
+    @GetMapping("/{name}")
     public ResponseData getPod(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
-            @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name) {
+            @ApiParam(value = "名称", required = true, example = "name") @PathVariable String name) {
         return new ResponseData();
     }
 
     @ApiOperation("创建pod")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseData createPod(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "配置", required = true) @RequestBody UserPodDTO pod) throws ApiException {
@@ -38,13 +38,13 @@ public class PodController {
     }
 
     @ApiOperation("更新pod")
-    @PutMapping("/update")
+    @PutMapping
     public ResponseData updatePod(@PathVariable Long organizationId, @RequestBody UserPodDTO pod) {
         return new ResponseData();
     }
 
     @ApiOperation("删除pod")
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseData deletePod(
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "名称", required = true, example = "name") @RequestParam String name){

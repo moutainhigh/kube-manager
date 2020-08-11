@@ -24,7 +24,7 @@ public class OrganizationController {
     private IOrganizationService organizationService;
 
     @ApiOperation("添加组织")
-    @PostMapping("/add")
+    @PostMapping
     public ResponseData addOrganization(Organization organization) throws ApiException {
         organizationService.addOrganization(organization);
         return new ResponseData(organization);
