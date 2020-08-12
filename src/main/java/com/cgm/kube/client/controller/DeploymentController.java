@@ -6,6 +6,7 @@ import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.io.IOException;
  */
 @CrossOrigin
 @RestController
+@Api(tags = "deployment")
 @RequestMapping("/api/{organizationId}/deployment")
 public class DeploymentController extends BaseController {
 

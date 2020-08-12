@@ -4,6 +4,7 @@ import com.cgm.kube.base.ResponseData;
 import com.cgm.kube.client.service.IPodService;
 import com.cgm.kube.client.dto.UserPodDTO;
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 @CrossOrigin
 @RestController
+@Api(tags = "pod")
 @RequestMapping("/api/{organizationId}/pod")
 public class PodController {
     @Resource

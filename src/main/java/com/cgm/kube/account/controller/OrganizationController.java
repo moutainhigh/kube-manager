@@ -5,6 +5,7 @@ import com.cgm.kube.account.entity.Organization;
 import com.cgm.kube.account.service.IOrganizationService;
 import com.cgm.kube.base.ResponseData;
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,7 @@ import javax.annotation.Resource;
  */
 @CrossOrigin
 @RestController
+@Api(tags = "组织")
 @RequestMapping("/api/organization")
 public class OrganizationController {
     @Resource

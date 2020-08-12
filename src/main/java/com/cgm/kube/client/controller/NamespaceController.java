@@ -3,6 +3,7 @@ package com.cgm.kube.client.controller;
 import com.cgm.kube.base.ResponseData;
 import com.cgm.kube.client.service.INamespaceService;
 import io.kubernetes.client.openapi.ApiException;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import javax.annotation.Resource;
  */
 @CrossOrigin
 @RestController
+@Api(tags = "命名空间")
 @RequestMapping("/api/{organizationId}/namespace")
 public class NamespaceController {
     @Resource
