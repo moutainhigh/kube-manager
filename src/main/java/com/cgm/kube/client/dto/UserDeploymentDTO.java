@@ -1,6 +1,7 @@
 package com.cgm.kube.client.dto;
 
 import com.cgm.kube.client.constant.KubeConstant;
+import com.cgm.kube.client.constant.KubeErrorCode;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.*;
 import io.swagger.annotations.ApiModel;
@@ -81,30 +82,29 @@ public class UserDeploymentDTO {
      * @param kubeDeployment kubeDeployment
      */
     public UserDeploymentDTO(V1Deployment kubeDeployment) {
+        Assert.notNull(kubeDeployment, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(kubeDeployment.getMetadata() != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(kubeDeployment.getSpec() != null, KubeErrorCode.NO_FIELD);
+
         // 创建时的基本信息
-        Assert.notNull(kubeDeployment, KubeConstant.ErrorCode.NO_FIELD);
-        Assert.isTrue(kubeDeployment.getMetadata() != null, KubeConstant.ErrorCode.NO_FIELD);
         this.uid = kubeDeployment.getMetadata().getUid();
         this.name = kubeDeployment.getMetadata().getName();
         this.namespace = kubeDeployment.getMetadata().getNamespace();
         this.labels = kubeDeployment.getMetadata().getLabels();
 
-        Assert.isTrue(kubeDeployment.getSpec() != null, KubeConstant.ErrorCode.NO_FIELD);
         V1DeploymentSpec spec = kubeDeployment.getSpec();
         this.replicas = spec.getReplicas();
-
-        Assert.isTrue(spec.getTemplate().getSpec() != null, KubeConstant.ErrorCode.NO_FIELD);
+        Assert.isTrue(spec.getTemplate().getSpec() != null, KubeErrorCode.NO_FIELD);
         V1PodSpec templateSpec = spec.getTemplate().getSpec();
         V1Container container = templateSpec.getContainers().get(0);
         this.image = container.getImage();
 
         // 资源信息
         V1ResourceRequirements resource = container.getResources();
-        Assert.isTrue(resource != null, KubeConstant.ErrorCode.NO_FIELD);
+        Assert.isTrue(resource != null, KubeErrorCode.NO_FIELD);
         if (resource.getRequests() != null) {
             this.cpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
             this.memRequests = resource.getRequests().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
-
         } else {
             this.cpuRequests = KubeConstant.RESOURCE_NOT_SET;
             this.memRequests = KubeConstant.RESOURCE_NOT_SET;
@@ -126,13 +126,14 @@ public class UserDeploymentDTO {
         // 各状态指标
         this.creationTimestamp = Objects.requireNonNull(kubeDeployment.getMetadata().getCreationTimestamp()).getMillis();
         V1DeploymentStatus deploymentStatus = kubeDeployment.getStatus();
-        Assert.isTrue(deploymentStatus != null, KubeConstant.ErrorCode.NO_FIELD);
+        Assert.isTrue(deploymentStatus != null, KubeErrorCode.NO_FIELD);
         this.availableReplicas = deploymentStatus.getAvailableReplicas() == null ?
                 0 : deploymentStatus.getAvailableReplicas();
         this.status = this.availableReplicas < this.replicas ? KubeConstant.STATUS_FAILED : KubeConstant.STATUS_READY;
 
+        // 次要状态
         List<V1DeploymentCondition> conditionList = deploymentStatus.getConditions();
-        Assert.isTrue(conditionList != null, KubeConstant.ErrorCode.NO_FIELD);
+        Assert.isTrue(conditionList != null, KubeErrorCode.NO_FIELD);
         for (V1DeploymentCondition condition : conditionList) {
             if ("Available".equals(condition.getType())) {
                 this.availableStatus = condition.getStatus();

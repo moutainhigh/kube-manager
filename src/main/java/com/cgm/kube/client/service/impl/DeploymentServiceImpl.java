@@ -4,6 +4,7 @@ import com.cgm.kube.account.entity.User;
 import com.cgm.kube.account.service.IUserService;
 import com.cgm.kube.base.BaseException;
 import com.cgm.kube.client.constant.KubeConstant;
+import com.cgm.kube.client.constant.KubeErrorCode;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
@@ -47,7 +48,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1DeploymentList list = api.listNamespacedDeployment("ns" + organizationId, "true", true,
                 null, null, null, paramDTO.getLimit(), null, 5, false);
-        Assert.notNull(list.getItems(), KubeConstant.ErrorCode.NO_FIELD);
+        Assert.notNull(list.getItems(), KubeErrorCode.NO_FIELD);
         if (list.getItems().isEmpty()) {
             return new ArrayList<>();
         }

@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author cgm
@@ -26,6 +27,16 @@ public class PodController {
             @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
             @ApiParam(value = "名称", required = true, example = "name") @PathVariable String name) {
         return new ResponseData();
+    }
+
+    @ApiOperation("查询指定deployment的pod")
+    @GetMapping("/deployment/{name}")
+    public ResponseData getDeploymentPod(
+            @ApiParam(value = "租户ID", required = true, example = "10") @PathVariable Long organizationId,
+            @ApiParam(value = "deployment名称", required = true, example = "name") @PathVariable String name)
+            throws ApiException {
+        List<UserPodDTO> dtoList = podService.listDeploymentPod(organizationId, name);
+        return new ResponseData(dtoList);
     }
 
     @ApiOperation("创建pod")

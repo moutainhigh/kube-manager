@@ -1,10 +1,14 @@
 package com.cgm.kube.client.dto;
 
+import com.cgm.kube.client.constant.KubeErrorCode;
+import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodBuilder;
+import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import tk.mybatis.mapper.util.Assert;
 
 /**
  * @author cgm
@@ -12,23 +16,32 @@ import lombok.Data;
 @Data
 @ApiModel("提供给用户的pod类")
 public class UserPodDTO {
-    /**
-     * 名称
-     */
+    @ApiModelProperty(value = "唯一标识", hidden = true)
+    private String uid;
+
     @ApiModelProperty("名称")
     private String name;
 
-    /**
-     * 命名空间
-     */
     @ApiModelProperty("命名空间")
     private String namespace;
 
-    /**
-     * 镜像
-     */
     @ApiModelProperty("镜像")
     private String image;
+
+    public UserPodDTO(V1Pod v1Pod) {
+        Assert.notNull(v1Pod, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(v1Pod.getMetadata() != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(v1Pod.getSpec() != null, KubeErrorCode.NO_FIELD);
+
+        this.uid = v1Pod.getMetadata().getUid();
+        this.name = v1Pod.getMetadata().getName();
+        this.namespace = v1Pod.getMetadata().getNamespace();
+
+        V1PodSpec spec = v1Pod.getSpec();
+        V1Container container = spec.getContainers().get(0);
+        this.image = container.getImage();
+
+    }
 
 
     public V1Pod toKube() {

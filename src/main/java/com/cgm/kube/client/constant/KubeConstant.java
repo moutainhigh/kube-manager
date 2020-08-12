@@ -35,14 +35,4 @@ public class KubeConstant {
     public static final String STATUS_READY = "Ready";
     public static final String STATUS_STARTING = "Starting";
     public static final String STATUS_FAILED = "Failed";
-
-    public static class ErrorCode {
-        private ErrorCode() {
-
-        }
-
-        public static final String QUERY_FAILED = "查询失败";
-
-        public static final String NO_FIELD = "查询异常，内容缺失";
-    }
 }
