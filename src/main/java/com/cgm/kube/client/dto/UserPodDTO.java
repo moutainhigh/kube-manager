@@ -28,6 +28,10 @@ public class UserPodDTO {
     @ApiModelProperty("镜像")
     private String image;
 
+    public UserPodDTO() {
+
+    }
+
     public UserPodDTO(V1Pod v1Pod) {
         Assert.notNull(v1Pod, KubeErrorCode.NO_FIELD);
         Assert.isTrue(v1Pod.getMetadata() != null, KubeErrorCode.NO_FIELD);

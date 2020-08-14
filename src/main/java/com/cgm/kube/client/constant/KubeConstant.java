@@ -22,6 +22,8 @@ public class KubeConstant {
 
     public static final String RESOURCE_GPU_DEFAULT = "0";
 
+    public static final String IMAGE_TYPE_TERMINAL = "terminal";
+
     /**
      * 在k8s状态中，以字符串“True”表示真
      */

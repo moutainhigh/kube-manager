@@ -41,7 +41,7 @@ public class PodServiceImpl implements IPodService {
     public void createPod(UserPodDTO pod) throws ApiException {
         CoreV1Api api = new CoreV1Api();
         V1Pod kubePod = pod.toKube();
-        String namespace = "user-" + pod.getNamespace();
+        String namespace = pod.getNamespace();
         api.createNamespacedPod(namespace, kubePod, "true", null, null);
     }
 }
