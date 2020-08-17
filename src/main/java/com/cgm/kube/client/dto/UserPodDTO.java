@@ -1,6 +1,6 @@
 package com.cgm.kube.client.dto;
 
-import com.cgm.kube.client.constant.KubeErrorCode;
+import com.cgm.kube.base.ErrorCode;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodBuilder;
@@ -33,9 +33,9 @@ public class UserPodDTO {
     }
 
     public UserPodDTO(V1Pod v1Pod) {
-        Assert.notNull(v1Pod, KubeErrorCode.NO_FIELD);
-        Assert.isTrue(v1Pod.getMetadata() != null, KubeErrorCode.NO_FIELD);
-        Assert.isTrue(v1Pod.getSpec() != null, KubeErrorCode.NO_FIELD);
+        Assert.notNull(v1Pod, ErrorCode.NO_FIELD);
+        Assert.isTrue(v1Pod.getMetadata() != null, ErrorCode.NO_FIELD);
+        Assert.isTrue(v1Pod.getSpec() != null, ErrorCode.NO_FIELD);
 
         this.uid = v1Pod.getMetadata().getUid();
         this.name = v1Pod.getMetadata().getName();

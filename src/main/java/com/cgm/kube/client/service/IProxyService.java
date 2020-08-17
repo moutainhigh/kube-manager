@@ -1,9 +1,12 @@
 package com.cgm.kube.client.service;
 
-import org.apache.http.HttpResponse;
+import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * @author cgm
+ */
 public interface IProxyService {
     /**
      * 代理
@@ -12,5 +15,5 @@ public interface IProxyService {
      * @param podHost pod ip + 端口
      * @return pod返回
      */
-    HttpResponse proxy(HttpServletRequest request, String podHost);
+    ResponseEntity<Object> proxy(HttpServletRequest request, String podHost);
 }

@@ -3,8 +3,8 @@ package com.cgm.kube.client.service.impl;
 import com.cgm.kube.account.entity.User;
 import com.cgm.kube.account.service.IUserService;
 import com.cgm.kube.base.BaseException;
-import com.cgm.kube.client.constant.KubeConstant;
-import com.cgm.kube.client.constant.KubeErrorCode;
+import com.cgm.kube.base.Constant;
+import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
@@ -48,7 +48,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1DeploymentList list = api.listNamespacedDeployment("ns" + organizationId, "true", true,
                 null, null, null, paramDTO.getLimit(), null, 5, false);
-        Assert.notNull(list.getItems(), KubeErrorCode.NO_FIELD);
+        Assert.notNull(list.getItems(), ErrorCode.NO_FIELD);
         if (list.getItems().isEmpty()) {
             return new ArrayList<>();
         }
@@ -69,7 +69,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         logger.debug("转换结果:\n{}", kubeDeployment);
         AppsV1Api api = new AppsV1Api();
         // 普通用户不使用前端namespace参数而使用用户组织，此时跨组织的操作会因namespace不一致而被拦截，超管不会被拦截
-        String namespace = user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN) ?
+        String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
     }
@@ -81,7 +81,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1Deployment kubeDeployment = deployment.toKube();
         AppsV1Api api = new AppsV1Api();
-        String namespace = user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN) ?
+        String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.replaceNamespacedDeployment(deployment.getName(), namespace, kubeDeployment, "true", null, null);
     }
@@ -94,7 +94,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         V1Deployment kubeDeployment = deployment.toKube();
         V1Patch patch = new V1Patch(new Gson().toJson(kubeDeployment, V1Deployment.class));
         AppsV1Api api = new AppsV1Api();
-        String namespace = user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN) ?
+        String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.patchNamespacedDeploymentScale(deployment.getName(), namespace, patch, "true", null, null, false);
     }
@@ -103,12 +103,12 @@ public class DeploymentServiceImpl implements IDeploymentService {
     public void deleteDeployment(Long organizationId, String name) throws ApiException {
         User user = userService.findById(10000001L);
         // 仅作为权限控制的示意，非最终逻辑
-        if (!user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN)) {
+        if (!user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN)) {
             throw new BaseException("权限不足");
         }
 
         AppsV1Api api = new AppsV1Api();
-        String namespace = user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN) ?
+        String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 "ns" + organizationId : "ns" + user.getOrganizationId();
         api.deleteNamespacedDeployment(name, namespace, "true", null, null,
                 null, null, null);

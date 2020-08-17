@@ -1,10 +1,10 @@
-package com.cgm.kube.client.constant;
+package com.cgm.kube.base;
 
 /**
  * @author cgm
  */
-public class KubeConstant {
-    private KubeConstant() {
+public class Constant {
+    private Constant() {
     }
 
     /**
@@ -13,13 +13,10 @@ public class KubeConstant {
     public static final String ROLE_SYSTEM_ADMIN = "system_admin";
 
     public static final String RESOURCE_CPU = "cpu";
-
     public static final String RESOURCE_MEM = "memory";
-
     public static final String RESOURCE_GPU = "nvidia.com/gpu";
 
     public static final String RESOURCE_NOT_SET = "未设置";
-
     public static final String RESOURCE_GPU_DEFAULT = "0";
 
     public static final String IMAGE_TYPE_TERMINAL = "terminal";
@@ -28,13 +25,15 @@ public class KubeConstant {
      * 在k8s状态中，以字符串“True”表示真
      */
     public static final String TRUE = "True";
-
-    /**
-     * 在k8s状态中，以字符串“False”表示假
-     */
     public static final String FALSE = "False";
 
     public static final String STATUS_READY = "Ready";
     public static final String STATUS_STARTING = "Starting";
     public static final String STATUS_FAILED = "Failed";
+
+    public static final String HEADER_CONTENT_TYPE = "Content-Type";
+
+    public static final String CONTENT_TYPE_HTML = "text/html";
+
+    public static final String CHARSET_UTF8 = "utf-8";
 }

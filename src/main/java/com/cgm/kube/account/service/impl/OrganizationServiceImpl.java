@@ -5,7 +5,7 @@ import com.cgm.kube.account.entity.User;
 import com.cgm.kube.account.mapper.OrganizationMapper;
 import com.cgm.kube.account.service.IOrganizationService;
 import com.cgm.kube.account.service.IUserService;
-import com.cgm.kube.client.constant.KubeConstant;
+import com.cgm.kube.base.Constant;
 import com.cgm.kube.client.service.INamespaceService;
 import io.kubernetes.client.openapi.ApiException;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class OrganizationServiceImpl implements IOrganizationService {
     @Transactional(rollbackFor = Exception.class)
     public void addOrganization(Organization organization) throws ApiException {
         User user = userService.findById(10000001L);
-        Assert.isTrue(user.getRoles().contains(KubeConstant.ROLE_SYSTEM_ADMIN), "无权操作！");
+        Assert.isTrue(user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN), "无权操作！");
 
         organizationMapper.insertSelective(organization);
         Assert.notNull(organization.getId(), "新增组织失败！");

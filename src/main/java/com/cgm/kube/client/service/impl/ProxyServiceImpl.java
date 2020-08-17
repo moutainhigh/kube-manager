@@ -1,7 +1,11 @@
 package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.base.BaseException;
+import com.cgm.kube.base.Constant;
+import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.service.IProxyService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -12,39 +16,65 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author cgm
  */
 @Service
+@Slf4j
 public class ProxyServiceImpl implements IProxyService {
     @Override
-    public HttpResponse proxy(HttpServletRequest request, String podHost) {
+    public ResponseEntity<Object> proxy(HttpServletRequest request, String podHost) {
         String url = "http://" + podHost + request.getRequestURI().split(podHost)[1];
         HttpGet httpGet = new HttpGet(url);
+
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build();
              CloseableHttpResponse response = httpClient.execute(httpGet)) {
-            // 对html进行domain修改
-            if ("text/html".equals(response.getFirstHeader("Content-Type").getValue())) {
-                return replaceDomain(request, response);
+            String contentType = response.getFirstHeader(Constant.HEADER_CONTENT_TYPE).getValue();
+            if (Constant.CONTENT_TYPE_HTML.equals(contentType)) {
+                // 对html文本进行修改
+                log.debug("Content-Type: text/html");
+                String body = EntityUtils.toString(response.getEntity(), Constant.CHARSET_UTF8);
+                body = replaceDomain(request, body);
+                return ResponseEntity.ok().headers(getApacheHeaders(response)).body(body);
+            } else {
+                // 直接使用二进制数据
+                byte[] body = EntityUtils.toByteArray(response.getEntity());
+                log.debug(Arrays.toString(response.getAllHeaders()));
+                // 复制响应头后返回
+                return ResponseEntity.ok().headers(getApacheHeaders(response)).body(body);
             }
-            return response;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BaseException("代理异常");
+            throw new BaseException(ErrorCode.PROXY_ERROR);
         }
     }
 
-    private HttpResponse replaceDomain(HttpServletRequest request, CloseableHttpResponse response) throws IOException {
+    /**
+     * 获取并转换响应头
+     *
+     * @param response httpClient产生的response
+     * @return spring响应头
+     */
+    private HttpHeaders getApacheHeaders(HttpResponse response) {
+        Header[] headers = response.getAllHeaders();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        for (Header header : headers) {
+            httpHeaders.add(header.getName(), header.getValue());
+        }
+        return httpHeaders;
+    }
+
+    private String replaceDomain(HttpServletRequest request, String originHtml) {
         String backend = "http://localhost:8100";
         String baseUri = "http://100.65.110.40";
-
-        String originHtml = EntityUtils.toString(response.getEntity(), "utf-8");
 
         Document document = Jsoup.parse(originHtml);
 
@@ -67,6 +97,6 @@ public class ProxyServiceImpl implements IProxyService {
             }
         }
 
-        return null;
+        return document.toString();
     }
 }

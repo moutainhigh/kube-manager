@@ -1,7 +1,7 @@
 package com.cgm.kube.client.dto;
 
-import com.cgm.kube.client.constant.KubeConstant;
-import com.cgm.kube.client.constant.KubeErrorCode;
+import com.cgm.kube.base.Constant;
+import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.util.ImageUtils;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.*;
@@ -86,9 +86,9 @@ public class UserDeploymentDTO {
      * @param kubeDeployment kubeDeployment
      */
     public UserDeploymentDTO(V1Deployment kubeDeployment) {
-        Assert.notNull(kubeDeployment, KubeErrorCode.NO_FIELD);
-        Assert.isTrue(kubeDeployment.getMetadata() != null, KubeErrorCode.NO_FIELD);
-        Assert.isTrue(kubeDeployment.getSpec() != null, KubeErrorCode.NO_FIELD);
+        Assert.notNull(kubeDeployment, ErrorCode.NO_FIELD);
+        Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
+        Assert.isTrue(kubeDeployment.getSpec() != null, ErrorCode.NO_FIELD);
 
         // 创建时的基本信息
         this.uid = kubeDeployment.getMetadata().getUid();
@@ -98,7 +98,7 @@ public class UserDeploymentDTO {
 
         V1DeploymentSpec spec = kubeDeployment.getSpec();
         this.replicas = spec.getReplicas();
-        Assert.isTrue(spec.getTemplate().getSpec() != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(spec.getTemplate().getSpec() != null, ErrorCode.NO_FIELD);
         V1PodSpec templateSpec = spec.getTemplate().getSpec();
         V1Container container = templateSpec.getContainers().get(0);
         this.image = container.getImage();
@@ -106,39 +106,39 @@ public class UserDeploymentDTO {
 
         // 资源信息
         V1ResourceRequirements resource = container.getResources();
-        Assert.isTrue(resource != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(resource != null, ErrorCode.NO_FIELD);
         if (resource.getRequests() != null) {
-            this.cpuRequests = resource.getRequests().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
-            this.memRequests = resource.getRequests().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
+            this.cpuRequests = resource.getRequests().get(Constant.RESOURCE_CPU).toSuffixedString();
+            this.memRequests = resource.getRequests().get(Constant.RESOURCE_MEM).toSuffixedString();
         } else {
-            this.cpuRequests = KubeConstant.RESOURCE_NOT_SET;
-            this.memRequests = KubeConstant.RESOURCE_NOT_SET;
+            this.cpuRequests = Constant.RESOURCE_NOT_SET;
+            this.memRequests = Constant.RESOURCE_NOT_SET;
         }
         if (resource.getLimits() != null) {
-            this.cpuLimits = resource.getLimits().get(KubeConstant.RESOURCE_CPU).toSuffixedString();
-            this.memLimits = resource.getLimits().get(KubeConstant.RESOURCE_MEM).toSuffixedString();
-            Quantity gpuLimitsQuantity = resource.getLimits().get(KubeConstant.RESOURCE_GPU);
+            this.cpuLimits = resource.getLimits().get(Constant.RESOURCE_CPU).toSuffixedString();
+            this.memLimits = resource.getLimits().get(Constant.RESOURCE_MEM).toSuffixedString();
+            Quantity gpuLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_GPU);
             this.gpuLimits = gpuLimitsQuantity == null ?
-                    KubeConstant.RESOURCE_GPU_DEFAULT : gpuLimitsQuantity.toSuffixedString();
+                    Constant.RESOURCE_GPU_DEFAULT : gpuLimitsQuantity.toSuffixedString();
         } else {
-            this.cpuLimits = KubeConstant.RESOURCE_NOT_SET;
-            this.memLimits = KubeConstant.RESOURCE_NOT_SET;
-            this.gpuLimits = KubeConstant.RESOURCE_GPU_DEFAULT;
+            this.cpuLimits = Constant.RESOURCE_NOT_SET;
+            this.memLimits = Constant.RESOURCE_NOT_SET;
+            this.gpuLimits = Constant.RESOURCE_GPU_DEFAULT;
         }
-        this.resourceType = KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.gpuLimits) ? "CPU" : "GPU";
+        this.resourceType = Constant.RESOURCE_GPU_DEFAULT.equals(this.gpuLimits) ? "CPU" : "GPU";
 
 
         // 各状态指标
         this.creationTimestamp = Objects.requireNonNull(kubeDeployment.getMetadata().getCreationTimestamp()).getMillis();
         V1DeploymentStatus deploymentStatus = kubeDeployment.getStatus();
-        Assert.isTrue(deploymentStatus != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(deploymentStatus != null, ErrorCode.NO_FIELD);
         this.availableReplicas = deploymentStatus.getAvailableReplicas() == null ?
                 0 : deploymentStatus.getAvailableReplicas();
-        this.status = this.availableReplicas < this.replicas ? KubeConstant.STATUS_FAILED : KubeConstant.STATUS_READY;
+        this.status = this.availableReplicas < this.replicas ? Constant.STATUS_FAILED : Constant.STATUS_READY;
 
         // 次要状态
         List<V1DeploymentCondition> conditionList = deploymentStatus.getConditions();
-        Assert.isTrue(conditionList != null, KubeErrorCode.NO_FIELD);
+        Assert.isTrue(conditionList != null, ErrorCode.NO_FIELD);
         for (V1DeploymentCondition condition : conditionList) {
             if ("Available".equals(condition.getType())) {
                 this.availableStatus = condition.getStatus();
@@ -192,7 +192,7 @@ public class UserDeploymentDTO {
         Map<String, Quantity> limitsMap = new HashMap<>(3);
         limitsMap.put("cpu", new Quantity(this.getCpuLimits()));
         limitsMap.put("memory", new Quantity(this.getMemLimits()));
-        if (!KubeConstant.RESOURCE_GPU_DEFAULT.equals(this.getGpuLimits())) {
+        if (!Constant.RESOURCE_GPU_DEFAULT.equals(this.getGpuLimits())) {
             limitsMap.put("nvidia.com/gpu", new Quantity(this.getGpuLimits()));
         }
         V1ResourceRequirements resource = new V1ResourceRequirements()
@@ -204,7 +204,7 @@ public class UserDeploymentDTO {
                 .name(this.getName())
                 .image(this.getImage())
                 .resources(resource);
-        if (KubeConstant.IMAGE_TYPE_TERMINAL.equals(this.getImageType())) {
+        if (Constant.IMAGE_TYPE_TERMINAL.equals(this.getImageType())) {
             String[] commands = {"/bin/bash", "-ce", "tail -f /dev/null"};
             podContainer.command(Arrays.asList(commands));
         }
