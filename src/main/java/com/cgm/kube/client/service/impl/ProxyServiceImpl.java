@@ -19,7 +19,6 @@ import org.jsoup.select.Elements;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -30,19 +29,24 @@ import java.util.Arrays;
 @Service
 @Slf4j
 public class ProxyServiceImpl implements IProxyService {
+    private static final String PROXY_PREFIX = "/proxy/";
+
     @Override
     public ResponseEntity<Object> proxy(HttpServletRequest request, String podHost) {
-        String url = "http://" + podHost + request.getRequestURI().split(podHost)[1];
+        log.debug("Request URI: {}", request.getRequestURI());
+        String url = request.getRequestURI().replace(PROXY_PREFIX, "");
+        // 没有指定http/https的默认使用http
+        url = url.startsWith("http") ? url : "http://" + url;
         HttpGet httpGet = new HttpGet(url);
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build();
              CloseableHttpResponse response = httpClient.execute(httpGet)) {
             String contentType = response.getFirstHeader(Constant.HEADER_CONTENT_TYPE).getValue();
-            if (Constant.CONTENT_TYPE_HTML.equals(contentType)) {
+            if (contentType.contains(Constant.CONTENT_TYPE_HTML)) {
                 // 对html文本进行修改
                 log.debug("Content-Type: text/html");
                 String body = EntityUtils.toString(response.getEntity(), Constant.CHARSET_UTF8);
-                body = replaceDomain(request, body);
+                body = replaceDomain(url, body);
                 return ResponseEntity.ok().headers(getApacheHeaders(response)).body(body);
             } else {
                 // 直接使用二进制数据
@@ -72,27 +76,36 @@ public class ProxyServiceImpl implements IProxyService {
         return httpHeaders;
     }
 
-    private String replaceDomain(HttpServletRequest request, String originHtml) {
+    private String replaceDomain(String url, String originHtml) {
         String backend = "http://localhost:8100";
-        String baseUri = "http://100.65.110.40";
-
+        String baseUri = url.split("//")[0] + "//" + url.split("/")[2];
+        String domain = baseUri.split("//")[1];
         Document document = Jsoup.parse(originHtml);
+
+        // 添加<base>标签及href属性
+        Elements base = document.getElementsByTag("base");
+        if (base.isEmpty()) {
+            Elements title = document.getElementsByTag("title");
+            title.after("<base href='/proxy/" + domain + "/'>");
+        } else {
+            base.get(0).attr("href", PROXY_PREFIX + domain + "/");
+        }
 
         // 修改href为代理链接
         Elements aList = document.getElementsByTag("a");
         for (Element a : aList) {
-            // target未设置或为self时进行处理，否则跳过
-            String target = a.attr("target");
-            if (!StringUtils.isEmpty(target) && !"_self".equals(target)) {
-                continue;
-            }
-
             String href = a.attr("href");
-            if (href.indexOf("/") == 0) {
+            if (href.startsWith("//")) {
+                // 使用原来页面的协议
+                href = url.split("//")[0] + href;
+            }
+            if (href.startsWith("/")) {
+                // 站内地址进行补全
                 href = baseUri + href;
             }
-            if (href.indexOf(baseUri) == 0 || href.contains("domain")) {
-                String proxyHref = backend + "/proxy/100.65.110.40" + request.getRequestURI();
+            if (href.indexOf(baseUri) == 0 || href.startsWith(domain)) {
+                // 站内地址替换为代理
+                String proxyHref = backend + PROXY_PREFIX + href;
                 a.attr("href", proxyHref);
             }
         }

@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 @CrossOrigin
 @RestController
 @Api(tags = "代理")
-@RequestMapping("/api/proxy")
+@RequestMapping("/proxy")
 public class ProxyController extends BaseController {
     @Resource
     private IProxyService proxyService;
