@@ -5,6 +5,7 @@ import com.cgm.kube.base.Constant;
 import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.service.IProxyService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 
 /**
  * @author cgm
@@ -51,7 +51,6 @@ public class ProxyServiceImpl implements IProxyService {
             } else {
                 // 直接使用二进制数据
                 byte[] body = EntityUtils.toByteArray(response.getEntity());
-                log.debug(Arrays.toString(response.getAllHeaders()));
                 // 复制响应头后返回
                 return ResponseEntity.ok().headers(getApacheHeaders(response)).body(body);
             }
@@ -86,15 +85,34 @@ public class ProxyServiceImpl implements IProxyService {
         Elements base = document.getElementsByTag("base");
         if (base.isEmpty()) {
             Elements title = document.getElementsByTag("title");
-            title.after("<base href='/proxy/" + domain + "/'>");
+            title.after("<base href='/proxy/" + baseUri + "/'>");
         } else {
             base.get(0).attr("href", PROXY_PREFIX + domain + "/");
         }
 
-        // 修改href为代理链接
-        Elements aList = document.getElementsByTag("a");
-        for (Element a : aList) {
-            String href = a.attr("href");
+        // 获取需要修改url的标签
+        Elements elements = new Elements();
+        elements.addAll(document.getElementsByTag("a"));
+        elements.addAll(document.getElementsByTag("link"));
+        elements.addAll(document.getElementsByTag("img"));
+        elements.addAll(document.getElementsByTag("script"));
+        elements.addAll(document.getElementsByTag("form"));
+
+        // 修改为代理链接
+        String attributeKey;
+        for (Element e : elements) {
+            log.debug("origin: {}", e.toString());
+            if (StringUtils.isNotEmpty(e.attr("href"))) {
+                attributeKey = "href";
+            } else if (StringUtils.isNotEmpty(e.attr("src"))) {
+                attributeKey = "src";
+            } else if (StringUtils.isNotEmpty(e.attr("action"))) {
+                attributeKey = "action";
+            } else {
+                continue;
+            }
+
+            String href = e.attr(attributeKey);
             if (href.startsWith("//")) {
                 // 使用原来页面的协议
                 href = url.split("//")[0] + href;
@@ -103,11 +121,12 @@ public class ProxyServiceImpl implements IProxyService {
                 // 站内地址进行补全
                 href = baseUri + href;
             }
-            if (href.indexOf(baseUri) == 0 || href.startsWith(domain)) {
+            if (href.indexOf(baseUri) == 0 || href.contains(domain)) {
                 // 站内地址替换为代理
                 String proxyHref = backend + PROXY_PREFIX + href;
-                a.attr("href", proxyHref);
+                e.attr(attributeKey, proxyHref);
             }
+            log.debug("result: {}", e.attr(attributeKey));
         }
 
         return document.toString();
