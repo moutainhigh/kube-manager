@@ -3,7 +3,7 @@ package com.cgm.kube.client.service;
 import io.kubernetes.client.openapi.ApiException;
 
 /**
- * @author angel
+ * @author cgm
  */
 public interface INamespaceService {
     /**

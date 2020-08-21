@@ -14,4 +14,6 @@ public class ErrorCode {
 
     public static final String PROXY_ERROR = "代理异常";
 
+    public static final String NO_FREE_PORT = "未找到空闲端口";
+
 }

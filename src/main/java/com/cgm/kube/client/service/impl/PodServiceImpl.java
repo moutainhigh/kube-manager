@@ -1,15 +1,18 @@
 package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.base.ErrorCode;
+import com.cgm.kube.client.service.IPortInfoService;
 import com.cgm.kube.client.service.IPodService;
 import com.cgm.kube.client.dto.UserPodDTO;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.util.Assert;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +21,9 @@ import java.util.List;
  */
 @Service
 public class PodServiceImpl implements IPodService {
+    @Resource
+    private IPortInfoService portInfoService;
+
     @Override
     public List<UserPodDTO> listDeploymentPod(Long organizationId, String name) throws ApiException {
         CoreV1Api api = new CoreV1Api();
@@ -43,5 +49,11 @@ public class PodServiceImpl implements IPodService {
         V1Pod kubePod = pod.toKube();
         String namespace = pod.getNamespace();
         api.createNamespacedPod(namespace, kubePod, "true", null, null);
+        V1Service service = this.initService(kubePod, portInfoService.getFreePort());
+        api.createNamespacedService(namespace, service, "true", null, null);
+    }
+
+    private V1Service initService(V1Pod kubePod, int freePort) {
+        return new V1Service();
     }
 }

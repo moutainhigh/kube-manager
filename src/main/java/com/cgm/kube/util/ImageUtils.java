@@ -3,7 +3,7 @@ package com.cgm.kube.util;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
- * @author angel
+ * @author cgm
  */
 public class ImageUtils {
     private static final String BREAK = ":";
