@@ -8,6 +8,8 @@ import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
+import com.cgm.kube.client.service.IServiceService;
+import com.cgm.kube.util.ImageUtils;
 import com.cgm.kube.util.ResourceFormatter;
 import com.google.gson.Gson;
 import io.kubernetes.client.custom.V1Patch;
@@ -34,6 +36,8 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
     @Autowired
     private IUserService userService;
+    @Autowired
+    private IServiceService serviceService;
 
     @Override
     public UserDeploymentDTO getDeploymentByName(Long organizationId, String name) throws ApiException {
@@ -72,6 +76,10 @@ public class DeploymentServiceImpl implements IDeploymentService {
         String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
+
+        Integer podPort = deployment.getPodPort();
+        podPort = podPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : podPort;
+        serviceService.createService(deployment.getNamespace(), deployment.getName(), podPort);
     }
 
     @Override

@@ -57,6 +57,9 @@ public class UserDeploymentDTO {
     @ApiModelProperty(value = "gpu要求（单位：自然数，一个）", example = "1")
     private String gpuLimits;
 
+    @ApiModelProperty(value = "pod端口", example = "80")
+    private Integer podPort;
+
     @ApiModelProperty("标签")
     private Map<String, String> labels;
 
@@ -176,24 +179,25 @@ public class UserDeploymentDTO {
      * @return deployment
      */
     public V1Deployment toKube() {
-        this.labels = this.labels == null ? new HashMap<>(2) : this.labels;
+        this.labels = this.labels == null ? new HashMap<>(4) : this.labels;
         this.labels.put("app", this.image.split(":")[0]);
+        this.labels.put("name", this.name);
         this.imageType = ImageUtils.classifyImageType(this.getImage());
-        this.labels.put("image-type", this.getImageType());
+        this.labels.put("image-type", this.imageType);
         V1ObjectMeta metaData = new V1ObjectMeta()
-                .name(this.getName())
-                .namespace(this.getNamespace())
-                .labels(this.getLabels());
+                .name(this.name)
+                .namespace(this.namespace)
+                .labels(this.labels);
 
         // 资源需求，spec->template->spec->containers->resources
         Map<String, Quantity> requestsMap = new HashMap<>(3);
-        requestsMap.put("cpu", new Quantity(this.getCpuRequests()));
-        requestsMap.put("memory", new Quantity(this.getMemRequests()));
+        requestsMap.put("cpu", new Quantity(this.cpuRequests));
+        requestsMap.put("memory", new Quantity(this.memRequests));
         Map<String, Quantity> limitsMap = new HashMap<>(3);
-        limitsMap.put("cpu", new Quantity(this.getCpuLimits()));
-        limitsMap.put("memory", new Quantity(this.getMemLimits()));
-        if (!Constant.RESOURCE_GPU_DEFAULT.equals(this.getGpuLimits())) {
-            limitsMap.put("nvidia.com/gpu", new Quantity(this.getGpuLimits()));
+        limitsMap.put("cpu", new Quantity(this.cpuLimits));
+        limitsMap.put("memory", new Quantity(this.memLimits));
+        if (!Constant.RESOURCE_GPU_DEFAULT.equals(this.gpuLimits)) {
+            limitsMap.put("nvidia.com/gpu", new Quantity(this.gpuLimits));
         }
         V1ResourceRequirements resource = new V1ResourceRequirements()
                 .requests(requestsMap)
@@ -201,15 +205,15 @@ public class UserDeploymentDTO {
 
         // pod模板的spec配置，spec->template->spec
         V1Container podContainer = new V1Container()
-                .name(this.getName())
-                .image(this.getImage())
+                .name(this.name)
+                .image(this.image)
                 .resources(resource);
-        if (Constant.IMAGE_TYPE_TERMINAL.equals(this.getImageType())) {
+        if (Constant.IMAGE_TYPE_TERMINAL.equals(this.imageType)) {
             String[] commands = {"/bin/bash", "-ce", "tail -f /dev/null"};
             podContainer.command(Arrays.asList(commands));
         }
         V1Volume volume = new V1Volume()
-                .name(this.getName() + "volume")
+                .name(this.name + "volume")
                 .emptyDir(new V1EmptyDirVolumeSource());
         V1PodSpec podSpec = new V1PodSpec()
                 .containers(Collections.singletonList(podContainer))
@@ -217,12 +221,12 @@ public class UserDeploymentDTO {
 
         // spec配置
         V1LabelSelector selector = new V1LabelSelector()
-                .matchLabels(this.getLabels());
+                .matchLabels(this.labels);
         V1PodTemplateSpec template = new V1PodTemplateSpec()
                 .metadata(metaData)
                 .spec(podSpec);
         V1DeploymentSpec spec = new V1DeploymentSpec()
-                .replicas(this.getReplicas())
+                .replicas(this.replicas)
                 .selector(selector)
                 .template(template);
 

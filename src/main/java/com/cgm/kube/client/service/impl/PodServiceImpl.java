@@ -6,9 +6,7 @@ import com.cgm.kube.client.service.IPodService;
 import com.cgm.kube.client.dto.UserPodDTO;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.*;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.util.Assert;
 
@@ -49,11 +47,5 @@ public class PodServiceImpl implements IPodService {
         V1Pod kubePod = pod.toKube();
         String namespace = pod.getNamespace();
         api.createNamespacedPod(namespace, kubePod, "true", null, null);
-        V1Service service = this.initService(kubePod, portInfoService.getFreePort());
-        api.createNamespacedService(namespace, service, "true", null, null);
-    }
-
-    private V1Service initService(V1Pod kubePod, int freePort) {
-        return new V1Service();
     }
 }

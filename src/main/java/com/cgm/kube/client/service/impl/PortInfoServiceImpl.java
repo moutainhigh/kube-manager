@@ -6,6 +6,7 @@ import com.cgm.kube.client.mapper.PortInfoMapper;
 import com.cgm.kube.client.service.IPortInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
@@ -22,6 +23,7 @@ public class PortInfoServiceImpl implements IPortInfoService {
     private PortInfoMapper basicInfoMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int getFreePort() {
         PortInfo basicInfo = basicInfoMapper.selectByPrimaryKey(1);
         Assert.notNull(basicInfo, ErrorCode.QUERY_FAILED);
