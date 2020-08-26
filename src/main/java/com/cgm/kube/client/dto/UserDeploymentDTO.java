@@ -58,7 +58,7 @@ public class UserDeploymentDTO {
     private String gpuLimits;
 
     @ApiModelProperty(value = "pod端口", example = "80")
-    private Integer podPort;
+    private Integer targetPort;
 
     @ApiModelProperty("标签")
     private Map<String, String> labels;

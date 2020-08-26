@@ -8,6 +8,7 @@ import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
+import com.cgm.kube.client.service.IIngressService;
 import com.cgm.kube.client.service.IServiceService;
 import com.cgm.kube.util.ImageUtils;
 import com.cgm.kube.util.ResourceFormatter;
@@ -17,8 +18,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.util.Assert;
@@ -31,13 +31,15 @@ import java.util.stream.Collectors;
  * @author cgm
  */
 @Service
+@Slf4j
 public class DeploymentServiceImpl implements IDeploymentService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private IUserService userService;
     @Autowired
     private IServiceService serviceService;
+    @Autowired
+    private IIngressService ingressService;
 
     @Override
     public UserDeploymentDTO getDeploymentByName(Long organizationId, String name) throws ApiException {
@@ -57,7 +59,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
             return new ArrayList<>();
         }
 
-        logger.debug("api-server返回对象（第一条）:\n{}", list.getItems().get(0));
+        log.debug("api-server返回对象（第一条）:\n{}", list.getItems().get(0));
         // 在k8s api-server中没有找到排序参数，暂时按时间降序
         return list.getItems().stream().map(UserDeploymentDTO::new)
                 .sorted((a, b) -> (int) (b.getCreationTimestamp() - a.getCreationTimestamp()))
@@ -70,16 +72,23 @@ public class DeploymentServiceImpl implements IDeploymentService {
         this.checkResource(deployment, user, false);
 
         V1Deployment kubeDeployment = deployment.toKube();
-        logger.debug("转换结果:\n{}", kubeDeployment);
+        log.debug("转换结果:\n{}", kubeDeployment);
         AppsV1Api api = new AppsV1Api();
         // 普通用户不使用前端namespace参数而使用用户组织，此时跨组织的操作会因namespace不一致而被拦截，超管不会被拦截
         String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
-        api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
+        kubeDeployment = api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
 
-        Integer podPort = deployment.getPodPort();
-        podPort = podPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : podPort;
-        serviceService.createService(deployment.getNamespace(), deployment.getName(), podPort);
+        // 创建Service
+        Integer targetPort = deployment.getTargetPort();
+        targetPort = targetPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : targetPort;
+        serviceService.createService(deployment.getNamespace(), deployment.getName(), targetPort);
+
+        // 添加Ingress配置
+        Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
+        String uid = kubeDeployment.getMetadata().getUid();
+        log.info("Deployment created successfully, UID: {}" , uid);
+        ingressService.appendIngress(deployment.getNamespace(), "/" + uid, deployment.getName() + "-svc", targetPort);
     }
 
     @Override
@@ -134,7 +143,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         // 2.如果是更新，从deployment列表中，找出当前deployment，使用量减去这一条
         if (update) {
-            logger.debug("更新操作");
+            log.debug("更新操作");
         }
 
         // 3.查询用户资源限制，如果使用量 + 新deployment > 资源限制，抛出异常

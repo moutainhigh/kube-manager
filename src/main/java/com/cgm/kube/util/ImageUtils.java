@@ -10,7 +10,7 @@ public class ImageUtils {
 
     private static final String[] LINUX_IMAGES = {"centos", "redhat", "ubuntu"};
 
-    private static final String[] PORT80_IMAGES = {"nginx"};
+    private static final String[] PORT80_IMAGES = {"nginx", "httpd"};
 
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 
