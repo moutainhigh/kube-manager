@@ -1,6 +1,7 @@
 package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.client.service.IIngressService;
+import com.google.gson.Gson;
 import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
@@ -10,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author cgm
@@ -19,14 +22,12 @@ import java.util.List;
 @Slf4j
 public class IngressServiceImpl implements IIngressService {
     @Override
-    public void appendIngress(String namespace, String path, String serviceName, Integer servicePort) throws ApiException {
+    public void appendIngress(String namespace, String path, String serviceName, Integer servicePort)
+            throws ApiException {
         log.info("Appending Ingress: {} {} {}", namespace, path, serviceName);
         String ingressName = namespace + "-igs";
 
-        V1ObjectMeta metadata = new V1ObjectMeta()
-                .name(ingressName)
-                .namespace(namespace);
-
+        // 先构建Ingress的spec，只是追加的话不需要metadata等配置
         ExtensionsV1beta1IngressBackend backend = new ExtensionsV1beta1IngressBackend()
                 .serviceName(serviceName)
                 .servicePort(new IntOrString(servicePort));
@@ -42,20 +43,31 @@ public class IngressServiceImpl implements IIngressService {
         List<ExtensionsV1beta1IngressRule> rules = Collections.singletonList(rule);
         ExtensionsV1beta1IngressSpec spec = new ExtensionsV1beta1IngressSpec()
                 .rules(rules);
+        ExtensionsV1beta1Ingress ingress = new ExtensionsV1beta1Ingress().spec(spec);
 
-        ExtensionsV1beta1Ingress ingress = new ExtensionsV1beta1Ingress()
-                .kind("Ingress")
-                .apiVersion("extensions/v1beta1")
-                .metadata(metadata)
-                .spec(spec);
-
+        // 先查询有没有Ingress，如果已经创建了Ingress，追加配置
         ExtensionsV1beta1Api api = new ExtensionsV1beta1Api();
+        ExtensionsV1beta1IngressList list = api.listNamespacedIngress(namespace, "true", null, null,
+                null, null, null, null, null, null);
+        if (!list.getItems().isEmpty()) {
+            String pathJson = new Gson().toJson(pathConfig, ExtensionsV1beta1HTTPIngressPath.class);
+            // patch三个参数：op，操作，可为add/replace/merge等；path，路径；value，要添加/修改的配置
+            V1Patch patch = new V1Patch("[{\"op\": \"add\", \"path\": \"/spec/rules/0/http/paths/0\", \"value\":"
+                    + pathJson + "}]");
+            api.patchNamespacedIngress(ingressName, namespace, patch, "true", null, null, null);
+            return;
+        }
 
-        // 先查询有没有Ingress，没有的话创建一个新的
+        // 没有的话创建一个新的，把metadata等配置补全
+        Map<String, String> annotations = new HashMap<>(1);
+        annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/");
+        V1ObjectMeta metadata = new V1ObjectMeta()
+                .name(ingressName)
+                .namespace(namespace)
+                .annotations(annotations);
+        ingress.kind("Ingress")
+                .apiVersion("extensions/v1beta1")
+                .metadata(metadata);
         api.createNamespacedIngress(namespace, ingress, "true", null, null);
-
-        // 已经创建了Ingress，追加配置
-        V1Patch patch = new V1Patch("");
-        api.patchNamespacedIngress(ingressName, namespace, patch, "true", null, null, false);
     }
 }

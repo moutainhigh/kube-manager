@@ -9,6 +9,7 @@ import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
 import com.cgm.kube.client.service.IIngressService;
+import com.cgm.kube.client.service.IPortInfoService;
 import com.cgm.kube.client.service.IServiceService;
 import com.cgm.kube.util.ImageUtils;
 import com.cgm.kube.util.ResourceFormatter;
@@ -36,6 +37,8 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
     @Autowired
     private IUserService userService;
+    @Autowired
+    private IPortInfoService portInfoService;
     @Autowired
     private IServiceService serviceService;
     @Autowired
@@ -80,15 +83,18 @@ public class DeploymentServiceImpl implements IDeploymentService {
         kubeDeployment = api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
 
         // 创建Service
+        int freePort = portInfoService.getFreePort();
         Integer targetPort = deployment.getTargetPort();
+        // 前端可以指定端口，未指定时由后端判断
         targetPort = targetPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : targetPort;
-        serviceService.createService(deployment.getNamespace(), deployment.getName(), targetPort);
+        serviceService.createService(deployment.getNamespace(), deployment.getName() + "-svc",
+                deployment.getName(), freePort, targetPort);
 
         // 添加Ingress配置
         Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
         String uid = kubeDeployment.getMetadata().getUid();
-        log.info("Deployment created successfully, UID: {}" , uid);
-        ingressService.appendIngress(deployment.getNamespace(), "/" + uid, deployment.getName() + "-svc", targetPort);
+        log.info("Deployment created successfully, UID: {}", uid);
+        ingressService.appendIngress(deployment.getNamespace(), "/" + uid, deployment.getName() + "-svc", freePort);
     }
 
     @Override

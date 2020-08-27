@@ -10,6 +10,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -43,15 +44,20 @@ public class ServiceServiceImpl implements IServiceService {
      *     name: nginx01
      */
     @Override
-    public void createService(String namespace, String serviceName, String nameLabel, int targetPort) throws ApiException {
-        log.info("Creating Service: {} {}", namespace, serviceName);
+    public void createService(String namespace, String serviceName, String nameLabel, int port, Integer targetPort) throws ApiException {
+        if (StringUtils.isEmpty(serviceName)) {
+            serviceName = nameLabel + "-svc";
+        }
+        // 参照k8s规则，未指定targetPort时，设置为和port相同
+        if (targetPort == null) {
+            targetPort = port;
+        }
 
-        // 获取空闲端口
-        int freePort = portInfoService.getFreePort();
+        log.info("Creating Service: {} {}", namespace, serviceName);
 
         // 第三层赋值
         V1ServicePort servicePort = new V1ServicePort()
-                .port(freePort)
+                .port(port)
                 .targetPort(new IntOrString(targetPort))
                 .protocol("TCP");
         List<V1ServicePort> ports = Collections.singletonList(servicePort);
@@ -77,10 +83,6 @@ public class ServiceServiceImpl implements IServiceService {
         api.createNamespacedService(namespace, service, "true", null, null);
     }
 
-    @Override
-    public void createService(String namespace, String nameLabel, int targetPort) throws ApiException {
-        this.createService(namespace, nameLabel + "-svc", nameLabel, targetPort);
-    }
     @Override
     public void deleteService(String namespace, String serviceName) {
         log.info("Deleting Service: {} {}", namespace, serviceName);

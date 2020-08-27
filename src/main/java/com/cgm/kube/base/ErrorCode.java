@@ -16,4 +16,6 @@ public class ErrorCode {
 
     public static final String NO_FREE_PORT = "未找到空闲端口";
 
+    public static final String PORT_NOT_SPECIFIED = "未指定端口";
+
 }
