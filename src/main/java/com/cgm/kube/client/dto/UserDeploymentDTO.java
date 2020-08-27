@@ -180,7 +180,7 @@ public class UserDeploymentDTO {
      */
     public V1Deployment toKube() {
         this.labels = this.labels == null ? new HashMap<>(4) : this.labels;
-        this.labels.put("app", this.image.split(":")[0]);
+        this.labels.put("app", this.image.split(":")[0].substring(this.image.lastIndexOf("/") + 1));
         this.labels.put("name", this.name);
         this.imageType = ImageUtils.classifyImageType(this.getImage());
         this.labels.put("image-type", this.imageType);
@@ -207,6 +207,7 @@ public class UserDeploymentDTO {
         V1Container podContainer = new V1Container()
                 .name(this.name)
                 .image(this.image)
+                .imagePullPolicy("IfNotPresent")
                 .resources(resource);
         if (Constant.IMAGE_TYPE_TERMINAL.equals(this.imageType)) {
             String[] commands = {"/bin/bash", "-ce", "tail -f /dev/null"};

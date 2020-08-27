@@ -31,8 +31,9 @@ public class IngressServiceImpl implements IIngressService {
         ExtensionsV1beta1IngressBackend backend = new ExtensionsV1beta1IngressBackend()
                 .serviceName(serviceName)
                 .servicePort(new IntOrString(servicePort));
+        // 因为路径多了一层/uid，需要配合rewrite-target将这一层去掉
         ExtensionsV1beta1HTTPIngressPath pathConfig = new ExtensionsV1beta1HTTPIngressPath()
-                .path(path)
+                .path(path + "(/|$)(.*)")
                 .backend(backend);
         List<ExtensionsV1beta1HTTPIngressPath> paths = Collections.singletonList(pathConfig);
         ExtensionsV1beta1HTTPIngressRuleValue http = new ExtensionsV1beta1HTTPIngressRuleValue()
@@ -60,7 +61,8 @@ public class IngressServiceImpl implements IIngressService {
 
         // 没有的话创建一个新的，把metadata等配置补全
         Map<String, String> annotations = new HashMap<>(1);
-        annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/");
+        // 配合path传递的第二个参数，将路径改为不含/uid的
+        annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/$2");
         V1ObjectMeta metadata = new V1ObjectMeta()
                 .name(ingressName)
                 .namespace(namespace)

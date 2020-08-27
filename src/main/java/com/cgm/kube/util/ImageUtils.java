@@ -10,7 +10,9 @@ public class ImageUtils {
 
     private static final String[] LINUX_IMAGES = {"centos", "redhat", "ubuntu"};
 
-    private static final String[] PORT80_IMAGES = {"nginx", "httpd"};
+    private static final String[] PORT80_IMAGES = {"nginx", "httpd", "dorowu/ubuntu-desktop-lxde-vnc"};
+
+    private static final String[] PORT6080_IMAGES = {};
 
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 
@@ -34,9 +36,14 @@ public class ImageUtils {
         if (ArrayUtils.contains(PORT80_IMAGES, shortName)) {
             return 80;
         }
+        if (ArrayUtils.contains(PORT6080_IMAGES, shortName)) {
+            return 6080;
+        }
         if (ArrayUtils.contains(PORT8080_IMAGES, shortName)) {
             return 8080;
         }
-        return 8443;
+
+        // SSH默认端口
+        return 22;
     }
 }
