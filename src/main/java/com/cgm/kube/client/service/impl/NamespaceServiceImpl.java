@@ -3,6 +3,7 @@ package com.cgm.kube.client.service.impl;
 import com.cgm.kube.account.entity.User;
 import com.cgm.kube.account.service.IUserService;
 import com.cgm.kube.base.Constant;
+import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.service.INamespaceService;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -25,7 +26,7 @@ public class NamespaceServiceImpl implements INamespaceService {
     public void initNamespace(Long organizationId) throws ApiException {
         // 先判断当前登录用户是否是超级管理员
         User user = userService.findById(10000001L);
-        Assert.isTrue(user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN), "无权操作！");
+        Assert.isTrue(user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN), ErrorCode.PERMISSION_DENIED);
 
         String name = "ns" + organizationId;
         this.initNamespace(name);

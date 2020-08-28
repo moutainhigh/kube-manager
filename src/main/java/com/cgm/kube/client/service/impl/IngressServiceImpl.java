@@ -21,6 +21,28 @@ import java.util.Map;
 @Service
 @Slf4j
 public class IngressServiceImpl implements IIngressService {
+    /**
+     * 追加Ingress配置，没有时新建
+     *
+     * Ingress结构：
+     * #kind: Ingress
+     * #apiVersion: extensions/v1beta1
+     * #metadata:
+     * #  name: ns100006-igs
+     * #  namespace: ns100006
+     * #  annotations:
+     * #    nginx.ingress.kubernetes.io/rewrite-target: /$2
+     * #    nginx.ingress.kubernetes.io/use-regex: 'true'
+     * #spec:
+     * #  rules:
+     * #    - host: node110
+     * #      http:
+     * #        paths:
+     * #          - path: /4b48a29d-c77f-4e6d-bc5c-7e39dfc3b433(/|$)(.*)
+     * #            backend:
+     * #              serviceName: desk02-svc
+     * #              servicePort: 30044
+     */
     @Override
     public void appendIngress(String namespace, String path, String serviceName, Integer servicePort)
             throws ApiException {

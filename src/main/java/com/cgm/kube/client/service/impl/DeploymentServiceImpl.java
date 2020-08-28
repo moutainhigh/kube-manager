@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import lombok.extern.slf4j.Slf4j;
@@ -130,11 +131,17 @@ public class DeploymentServiceImpl implements IDeploymentService {
             throw new BaseException("权限不足");
         }
 
-        AppsV1Api api = new AppsV1Api();
+        AppsV1Api appsV1Api = new AppsV1Api();
         String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 "ns" + organizationId : "ns" + user.getOrganizationId();
-        api.deleteNamespacedDeployment(name, namespace, "true", null, null,
+        appsV1Api.deleteNamespacedDeployment(name, namespace, "true", null, null,
                 null, null, null);
+
+        // 清理Service
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.deleteNamespacedService(name + "-svc", namespace, "true", null, null,
+                null, null, null);
+        // 清理Ingress
     }
 
     /**

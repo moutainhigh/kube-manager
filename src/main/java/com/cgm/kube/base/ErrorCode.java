@@ -18,4 +18,8 @@ public class ErrorCode {
 
     public static final String PORT_NOT_SPECIFIED = "未指定端口";
 
+    public static final String PERMISSION_DENIED = "没有权限";
+
+    public static final String ORG_ADD_FAILED = "新增组织失败";
+
 }

@@ -45,13 +45,10 @@ public class ServiceServiceImpl implements IServiceService {
      */
     @Override
     public void createService(String namespace, String serviceName, String nameLabel, int port, Integer targetPort) throws ApiException {
-        if (StringUtils.isEmpty(serviceName)) {
-            serviceName = nameLabel + "-svc";
-        }
+        // 未指定serviceName时，设置为 名称-svc
+        serviceName = StringUtils.isEmpty(serviceName) ? nameLabel + "-svc" : serviceName;
         // 参照k8s规则，未指定targetPort时，设置为和port相同
-        if (targetPort == null) {
-            targetPort = port;
-        }
+        targetPort = targetPort == null ? port : targetPort;
 
         log.info("Creating Service: {} {}", namespace, serviceName);
 
