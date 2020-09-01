@@ -23,7 +23,7 @@ import java.util.Map;
 public class IngressServiceImpl implements IIngressService {
     /**
      * 追加Ingress配置，没有时新建
-     *
+     * <p>
      * Ingress结构：
      * #kind: Ingress
      * #apiVersion: extensions/v1beta1
@@ -44,28 +44,37 @@ public class IngressServiceImpl implements IIngressService {
      * #              servicePort: 30044
      */
     @Override
-    public void appendIngress(String namespace, String path, String serviceName, Integer servicePort)
+    public void createIngress(String namespace, String uid, String serviceName, Integer servicePort)
             throws ApiException {
-        log.info("Appending Ingress: {} {} {}", namespace, path, serviceName);
+        log.info("Creating Ingress: {} {} {}", namespace, uid, serviceName);
+        String ingressName = serviceName.substring(0, serviceName.lastIndexOf("-svc")) + "-igs";
+
+        // 构建metadata
+        V1ObjectMeta metadata = buildMetadata(ingressName, namespace);
+        // 构建spec
+        ExtensionsV1beta1HTTPIngressPath pathConfig = buildPath(serviceName, servicePort, uid);
+        ExtensionsV1beta1IngressSpec spec = buildSpec(pathConfig);
+
+        ExtensionsV1beta1Ingress ingress = new ExtensionsV1beta1Ingress()
+                .spec(spec)
+                .kind("Ingress")
+                .apiVersion("extensions/v1beta1")
+                .metadata(metadata);
+
+        ExtensionsV1beta1Api api = new ExtensionsV1beta1Api();
+
+        api.createNamespacedIngress(namespace, ingress, "true", null, null);
+    }
+
+    @Override
+    public void appendIngress(String namespace, String uid, String serviceName, Integer servicePort)
+            throws ApiException {
+        log.info("Appending Ingress: {} {} {}", namespace, uid, serviceName);
         String ingressName = namespace + "-igs";
 
         // 先构建Ingress的spec，只是追加的话不需要metadata等配置
-        ExtensionsV1beta1IngressBackend backend = new ExtensionsV1beta1IngressBackend()
-                .serviceName(serviceName)
-                .servicePort(new IntOrString(servicePort));
-        // 因为路径多了一层/uid，需要配合rewrite-target将这一层去掉
-        ExtensionsV1beta1HTTPIngressPath pathConfig = new ExtensionsV1beta1HTTPIngressPath()
-                .path(path + "(/|$)(.*)")
-                .backend(backend);
-        List<ExtensionsV1beta1HTTPIngressPath> paths = Collections.singletonList(pathConfig);
-        ExtensionsV1beta1HTTPIngressRuleValue http = new ExtensionsV1beta1HTTPIngressRuleValue()
-                .paths(paths);
-        ExtensionsV1beta1IngressRule rule = new ExtensionsV1beta1IngressRule()
-                .host("node110")
-                .http(http);
-        List<ExtensionsV1beta1IngressRule> rules = Collections.singletonList(rule);
-        ExtensionsV1beta1IngressSpec spec = new ExtensionsV1beta1IngressSpec()
-                .rules(rules);
+        ExtensionsV1beta1HTTPIngressPath pathConfig = buildPath(serviceName, servicePort, uid);
+        ExtensionsV1beta1IngressSpec spec = buildSpec(pathConfig);
         ExtensionsV1beta1Ingress ingress = new ExtensionsV1beta1Ingress().spec(spec);
 
         // 先查询有没有Ingress，如果已经创建了Ingress，追加配置
@@ -82,16 +91,52 @@ public class IngressServiceImpl implements IIngressService {
         }
 
         // 没有的话创建一个新的，把metadata等配置补全
-        Map<String, String> annotations = new HashMap<>(1);
-        // 配合path传递的第二个参数，将路径改为不含/uid的
-        annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/$2");
-        V1ObjectMeta metadata = new V1ObjectMeta()
-                .name(ingressName)
-                .namespace(namespace)
-                .annotations(annotations);
+        V1ObjectMeta metadata = buildMetadata(ingressName, namespace);
         ingress.kind("Ingress")
                 .apiVersion("extensions/v1beta1")
                 .metadata(metadata);
         api.createNamespacedIngress(namespace, ingress, "true", null, null);
+    }
+
+    /**
+     * 构建metadata
+     */
+    private V1ObjectMeta buildMetadata(String ingressName, String namespace) {
+        Map<String, String> annotations = new HashMap<>(1);
+        // 配合path传递的第二个参数，将路径改为不含/uid的
+        annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/$2");
+        return new V1ObjectMeta()
+                .name(ingressName)
+                .namespace(namespace)
+                .annotations(annotations);
+    }
+
+    /**
+     * 构建path
+     * 路径：spec/rules/0/http/paths/0/path
+     */
+    private ExtensionsV1beta1HTTPIngressPath buildPath(String serviceName, int servicePort, String uid) {
+        ExtensionsV1beta1IngressBackend backend = new ExtensionsV1beta1IngressBackend()
+                .serviceName(serviceName)
+                .servicePort(new IntOrString(servicePort));
+        // 因为路径多了一层/uid，需要配合rewrite-target将这一层去掉
+        return new ExtensionsV1beta1HTTPIngressPath()
+                .path("/" + uid + "(/|$)(.*)")
+                .backend(backend);
+    }
+
+    /**
+     * 构建spec
+     */
+    private ExtensionsV1beta1IngressSpec buildSpec(ExtensionsV1beta1HTTPIngressPath pathConfig) {
+        List<ExtensionsV1beta1HTTPIngressPath> paths = Collections.singletonList(pathConfig);
+        ExtensionsV1beta1HTTPIngressRuleValue http = new ExtensionsV1beta1HTTPIngressRuleValue()
+                .paths(paths);
+        ExtensionsV1beta1IngressRule rule = new ExtensionsV1beta1IngressRule()
+                .host("node110")
+                .http(http);
+        List<ExtensionsV1beta1IngressRule> rules = Collections.singletonList(rule);
+        return new ExtensionsV1beta1IngressSpec()
+                .rules(rules);
     }
 }

@@ -14,7 +14,11 @@ public class ImageUtils {
 
     private static final String[] PORT6080_IMAGES = {};
 
+    private static final String[] PORT7681_IMAGES = {"tsl0922/ttyd"};
+
     private static final String[] PORT8080_IMAGES = {"tomcat"};
+
+    private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook"};
 
     private ImageUtils() {
 
@@ -39,8 +43,14 @@ public class ImageUtils {
         if (ArrayUtils.contains(PORT6080_IMAGES, shortName)) {
             return 6080;
         }
+        if (ArrayUtils.contains(PORT7681_IMAGES, shortName)) {
+            return 7681;
+        }
         if (ArrayUtils.contains(PORT8080_IMAGES, shortName)) {
             return 8080;
+        }
+        if (ArrayUtils.contains(PORT8888_IMAGES, shortName)) {
+            return 8888;
         }
 
         // SSH默认端口
