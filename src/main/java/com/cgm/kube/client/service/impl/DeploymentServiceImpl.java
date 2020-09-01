@@ -22,9 +22,8 @@ import io.kubernetes.client.openapi.apis.ExtensionsV1beta1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tk.mybatis.mapper.util.Assert;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +36,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DeploymentServiceImpl implements IDeploymentService {
 
-    @Autowired
-    private IUserService userService;
-    @Autowired
-    private IPortInfoService portInfoService;
-    @Autowired
-    private IServiceService serviceService;
-    @Autowired
-    private IIngressService ingressService;
+    private final IUserService userService;
+    private final IPortInfoService portInfoService;
+    private final IServiceService serviceService;
+    private final IIngressService ingressService;
+
+    public DeploymentServiceImpl(IUserService userService, IPortInfoService portInfoService,
+                                 IServiceService serviceService, IIngressService ingressService) {
+        this.userService = userService;
+        this.portInfoService = portInfoService;
+        this.serviceService = serviceService;
+        this.ingressService = ingressService;
+    }
 
     @Override
     public UserDeploymentDTO getDeploymentByName(Long organizationId, String name) throws ApiException {
@@ -78,25 +81,34 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1Deployment kubeDeployment = deployment.toKube();
         log.debug("转换结果:\n{}", kubeDeployment);
+
+        // 1.创建Deployment
         AppsV1Api api = new AppsV1Api();
         // 普通用户不使用前端namespace参数而使用用户组织，此时跨组织的操作会因namespace不一致而被拦截，超管不会被拦截
         String namespace = user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN) ?
                 deployment.getNamespace() : "ns" + user.getOrganizationId();
         kubeDeployment = api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
 
-        // 创建Service
+        // 2.创建Service
         int freePort = portInfoService.getFreePort();
         Integer targetPort = deployment.getTargetPort();
+        String serviceName = deployment.getName() + "-svc";
         // 前端可以指定端口，未指定时由后端判断
         targetPort = targetPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : targetPort;
-        serviceService.createService(deployment.getNamespace(), deployment.getName() + "-svc",
-                deployment.getName(), freePort, targetPort);
+        serviceService.createService(namespace, serviceName, deployment.getName(), freePort, targetPort);
 
-        // 添加Ingress配置
+        // 3.创建Ingress
         Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
         String uid = kubeDeployment.getMetadata().getUid();
+        ingressService.createIngress(namespace, uid, serviceName, freePort);
+
+        // 4.按需添加command，选择在此时进行修改，是因为command可能会需要之前的信息
+        String[] command = ImageUtils.determineCommands(deployment.getImage(), uid);
+        if (command.length > 0) {
+            this.patchDeploymentCommand(deployment.getName(), namespace, command, api);
+        }
+
         log.info("Deployment created successfully, UID: {}", uid);
-        ingressService.createIngress(deployment.getNamespace(), uid, deployment.getName() + "-svc", freePort);
     }
 
     @Override
@@ -146,6 +158,18 @@ public class DeploymentServiceImpl implements IDeploymentService {
         ExtensionsV1beta1Api extensionsApi = new ExtensionsV1beta1Api();
         extensionsApi.deleteNamespacedIngress(name + "-igs", namespace, "true", null, null,
                 null, null, null);
+    }
+
+    /**
+     * 修改deployment command
+     *
+     * @param command 命令
+     */
+    private void patchDeploymentCommand(String name, String namespace, String[] command, AppsV1Api api) throws ApiException {
+        String commandJson = new Gson().toJson(command);
+        V1Patch patch = new V1Patch("[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/command\", \"value\":"
+                + commandJson + "}]");
+        api.patchNamespacedDeployment(name, namespace, patch, "true", null, null, null);
     }
 
     /**

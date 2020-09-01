@@ -8,7 +8,9 @@ import org.apache.commons.lang3.ArrayUtils;
 public class ImageUtils {
     private static final String BREAK = ":";
 
-    private static final String[] LINUX_IMAGES = {"centos", "redhat", "ubuntu"};
+    private static final String[] BACKGROUND_IMAGES = {"centos", "redhat", "ubuntu"};
+
+    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook"};
 
     private static final String[] PORT80_IMAGES = {"nginx", "httpd", "dorowu/ubuntu-desktop-lxde-vnc"};
 
@@ -24,15 +26,29 @@ public class ImageUtils {
 
     }
 
-    public static String classifyImageType(String imageName) {
-        // 终端化
-        if (ArrayUtils.contains(LINUX_IMAGES, imageName.split(BREAK)[0])) {
-            return "terminal";
+    /**
+     * 获取镜像命令
+     */
+    public static String[] determineCommands(String imageName, String uid) {
+        String shortName = imageName.split(BREAK)[0];
+
+        // Jupyter需要修改base_url
+        if (ArrayUtils.contains(JUPYTER_IMAGES, shortName)) {
+            return new String[]{"/opt/conda/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'"};
         }
-        // 仅暴露端口
-        return "port";
+
+        // 需要维持后台运行的镜像
+        if (ArrayUtils.contains(BACKGROUND_IMAGES, shortName)) {
+            return new String[]{"/bin/bash", "-ce", "tail -f /dev/null"};
+        }
+
+        // 默认返回空数组
+        return new String[0];
     }
 
+    /**
+     * 端口确定
+     */
     public static int determineImagePort(String imageName) {
         String shortName = imageName.split(BREAK)[0];
 

@@ -8,7 +8,7 @@ import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import tk.mybatis.mapper.util.Assert;
+import org.springframework.util.Assert;
 
 /**
  * @author cgm

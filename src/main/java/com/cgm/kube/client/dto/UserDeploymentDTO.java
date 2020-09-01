@@ -2,13 +2,12 @@ package com.cgm.kube.client.dto;
 
 import com.cgm.kube.base.Constant;
 import com.cgm.kube.base.ErrorCode;
-import com.cgm.kube.util.ImageUtils;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.*;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import tk.mybatis.mapper.util.Assert;
+import org.springframework.util.Assert;
 
 import java.util.*;
 
@@ -35,9 +34,6 @@ public class UserDeploymentDTO {
 
     @ApiModelProperty(value = "镜像", example = "centos:latest")
     private String image;
-
-    @ApiModelProperty(value = "镜像类型", hidden = true)
-    private String imageType;
 
     @ApiModelProperty(value = "资源类型", example = "CPU")
     private String resourceType;
@@ -105,7 +101,6 @@ public class UserDeploymentDTO {
         V1PodSpec templateSpec = spec.getTemplate().getSpec();
         V1Container container = templateSpec.getContainers().get(0);
         this.image = container.getImage();
-        this.imageType = this.getLabels() == null ? "" : this.getLabels().get("image-type");
 
         // 资源信息
         V1ResourceRequirements resource = container.getResources();
@@ -179,11 +174,9 @@ public class UserDeploymentDTO {
      * @return deployment
      */
     public V1Deployment toKube() {
-        this.labels = this.labels == null ? new HashMap<>(4) : this.labels;
+        this.labels = this.labels == null ? new HashMap<>(2) : this.labels;
         this.labels.put("app", this.image.split(":")[0].substring(this.image.lastIndexOf("/") + 1));
         this.labels.put("name", this.name);
-        this.imageType = ImageUtils.classifyImageType(this.getImage());
-        this.labels.put("image-type", this.imageType);
         V1ObjectMeta metaData = new V1ObjectMeta()
                 .name(this.name)
                 .namespace(this.namespace)
@@ -209,10 +202,6 @@ public class UserDeploymentDTO {
                 .image(this.image)
                 .imagePullPolicy("IfNotPresent")
                 .resources(resource);
-        if (Constant.IMAGE_TYPE_TERMINAL.equals(this.imageType)) {
-            String[] commands = {"/bin/bash", "-ce", "tail -f /dev/null"};
-            podContainer.command(Arrays.asList(commands));
-        }
         V1Volume volume = new V1Volume()
                 .name(this.name + "volume")
                 .emptyDir(new V1EmptyDirVolumeSource());
