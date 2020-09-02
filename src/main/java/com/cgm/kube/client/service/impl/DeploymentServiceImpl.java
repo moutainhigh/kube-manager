@@ -93,17 +93,18 @@ public class DeploymentServiceImpl implements IDeploymentService {
         int freePort = portInfoService.getFreePort();
         Integer targetPort = deployment.getTargetPort();
         String serviceName = deployment.getName() + "-svc";
+        String image = deployment.getImage();
         // 前端可以指定端口，未指定时由后端判断
-        targetPort = targetPort == null ? ImageUtils.determineImagePort(deployment.getImage()) : targetPort;
+        targetPort = targetPort == null ? ImageUtils.determineImagePort(image) : targetPort;
         serviceService.createService(namespace, serviceName, deployment.getName(), freePort, targetPort);
 
         // 3.创建Ingress
         Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
         String uid = kubeDeployment.getMetadata().getUid();
-        ingressService.createIngress(namespace, uid, serviceName, freePort);
+        ingressService.createIngress(namespace, uid, serviceName, image, freePort);
 
         // 4.按需添加command，选择在此时进行修改，是因为command可能会需要之前的信息
-        String[] command = ImageUtils.determineCommands(deployment.getImage(), uid);
+        String[] command = ImageUtils.determineCommands(image, uid);
         if (command.length > 0) {
             this.patchDeploymentCommand(deployment.getName(), namespace, command, api);
         }

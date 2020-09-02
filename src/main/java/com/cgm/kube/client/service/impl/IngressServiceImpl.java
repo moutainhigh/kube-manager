@@ -1,6 +1,7 @@
 package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.client.service.IIngressService;
+import com.cgm.kube.util.ImageUtils;
 import com.google.gson.Gson;
 import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.custom.V1Patch;
@@ -44,13 +45,13 @@ public class IngressServiceImpl implements IIngressService {
      * #              servicePort: 30044
      */
     @Override
-    public void createIngress(String namespace, String uid, String serviceName, Integer servicePort)
+    public void createIngress(String namespace, String uid, String serviceName, String image, Integer servicePort)
             throws ApiException {
         log.info("Creating Ingress: {} {} {}", namespace, uid, serviceName);
         String ingressName = serviceName.substring(0, serviceName.lastIndexOf("-svc")) + "-igs";
 
         // 构建metadata
-        V1ObjectMeta metadata = buildMetadata(ingressName, namespace);
+        V1ObjectMeta metadata = buildMetadata(ingressName, namespace, image);
         // 构建spec
         ExtensionsV1beta1HTTPIngressPath pathConfig = buildPath(serviceName, servicePort, uid);
         ExtensionsV1beta1IngressSpec spec = buildSpec(pathConfig);
@@ -67,7 +68,7 @@ public class IngressServiceImpl implements IIngressService {
     }
 
     @Override
-    public void appendIngress(String namespace, String uid, String serviceName, Integer servicePort)
+    public void appendIngress(String namespace, String uid, String serviceName, String image, Integer servicePort)
             throws ApiException {
         log.info("Appending Ingress: {} {} {}", namespace, uid, serviceName);
         String ingressName = namespace + "-igs";
@@ -91,7 +92,7 @@ public class IngressServiceImpl implements IIngressService {
         }
 
         // 没有的话创建一个新的，把metadata等配置补全
-        V1ObjectMeta metadata = buildMetadata(ingressName, namespace);
+        V1ObjectMeta metadata = buildMetadata(ingressName, namespace, image);
         ingress.kind("Ingress")
                 .apiVersion("extensions/v1beta1")
                 .metadata(metadata);
@@ -101,14 +102,16 @@ public class IngressServiceImpl implements IIngressService {
     /**
      * 构建metadata
      */
-    private V1ObjectMeta buildMetadata(String ingressName, String namespace) {
+    private V1ObjectMeta buildMetadata(String ingressName, String namespace, String image) {
+        if (ImageUtils.keepTarget(image)) {
+            // Jupyter因修改了base_url，不需要覆盖target路径
+            return new V1ObjectMeta().name(ingressName).namespace(namespace);
+        }
+
         Map<String, String> annotations = new HashMap<>(1);
         // 配合path传递的第二个参数，将路径改为不含/uid的
         annotations.put("nginx.ingress.kubernetes.io/rewrite-target", "/$2");
-        return new V1ObjectMeta()
-                .name(ingressName)
-                .namespace(namespace)
-                .annotations(annotations);
+        return new V1ObjectMeta().name(ingressName).namespace(namespace).annotations(annotations);
     }
 
     /**
@@ -136,7 +139,6 @@ public class IngressServiceImpl implements IIngressService {
                 .host("node110")
                 .http(http);
         List<ExtensionsV1beta1IngressRule> rules = Collections.singletonList(rule);
-        return new ExtensionsV1beta1IngressSpec()
-                .rules(rules);
+        return new ExtensionsV1beta1IngressSpec().rules(rules);
     }
 }

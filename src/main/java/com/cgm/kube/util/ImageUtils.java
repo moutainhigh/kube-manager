@@ -34,7 +34,8 @@ public class ImageUtils {
 
         // Jupyter需要修改base_url
         if (ArrayUtils.contains(JUPYTER_IMAGES, shortName)) {
-            return new String[]{"/opt/conda/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'"};
+            return new String[]{"/opt/conda/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'",
+                    "--NotebookApp.token=''"};
         }
 
         // 需要维持后台运行的镜像
@@ -71,5 +72,14 @@ public class ImageUtils {
 
         // SSH默认端口
         return 22;
+    }
+
+    /**
+     * 路径保持
+     */
+    public static boolean keepTarget(String imageName) {
+        String shortName = imageName.split(BREAK)[0];
+        // 当前只有Jupyter需要保持target，如果有其他镜像，考虑定义数组KEEP_TARGET_IMAGES
+        return ArrayUtils.contains(JUPYTER_IMAGES, shortName);
     }
 }
