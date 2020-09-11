@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cgm.kube.account.mapper.SysRoleMapper">
+    <resultMap type="com.cgm.kube.account.entity.SysRole" id="BaseMap">
+    </resultMap>
+
+    <!--根据用户id查询用户具有的角色-->
+    <select id="listRolesByUserId" resultMap="BaseMap">
+        SELECT
+          id, code, name
+        FROM sys_role sr
+        WHERE EXISTS (
+          SELECT id
+          FROM sys_user_role sur
+          WHERE sur.user_id = #{userId}
+          AND sur.role_id = sr.id
+        )
+    </select>
+
+</mapper>

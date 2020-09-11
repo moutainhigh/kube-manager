@@ -1,7 +1,8 @@
 package com.cgm.kube.client.service.impl;
 
-import com.cgm.kube.account.entity.User;
-import com.cgm.kube.account.service.IUserService;
+import com.cgm.kube.account.entity.SysRole;
+import com.cgm.kube.account.entity.SysUser;
+import com.cgm.kube.account.service.ISysUserService;
 import com.cgm.kube.base.Constant;
 import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.service.INamespaceService;
@@ -18,15 +19,15 @@ import javax.annotation.Resource;
 @Service
 public class NamespaceServiceImpl implements INamespaceService {
     @Resource
-    private IUserService userService;
+    private ISysUserService sysUserService;
 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void initNamespace(Long organizationId) throws ApiException {
         // 先判断当前登录用户是否是超级管理员
-        User user = userService.findById(10000001L);
-        Assert.isTrue(user.getRoles().contains(Constant.ROLE_SYSTEM_ADMIN), ErrorCode.PERMISSION_DENIED);
+        SysUser user = sysUserService.getById(10000001L);
+        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.PERMISSION_DENIED);
 
         String name = "ns" + organizationId;
         this.initNamespace(name);

@@ -10,24 +10,14 @@ import java.util.Date;
  * @author cgm
  */
 @Data
-public class User {
+public class SysRolePermission {
     @Id
     @GeneratedValue(generator = "JDBC")
-    private Long id;
+    private Integer id;
 
-    private Long organizationId;
+    private Integer roleId;
 
-    private String username;
-
-    private String password;
-
-    private String roles;
-
-    private Integer cpuLimits;
-
-    private Integer memLimits;
-
-    private Integer gpuLimits;
+    private Integer permissionId;
 
     private Date createTime;
 

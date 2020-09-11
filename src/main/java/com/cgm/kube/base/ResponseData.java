@@ -57,6 +57,11 @@ public class ResponseData {
         setRows(object);
     }
 
+    public ResponseData(boolean success, Object object) {
+        this(success);
+        setRows(object);
+    }
+
     public String getCode() {
         return code;
     }

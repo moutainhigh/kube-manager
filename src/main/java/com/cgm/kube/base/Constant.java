@@ -10,7 +10,7 @@ public class Constant {
     /**
      * 系统超级管理员角色，其他角色不得包含"system_admin"
      */
-    public static final String ROLE_SYSTEM_ADMIN = "system_admin";
+    public static final String ROLE_SYSTEM_ADMIN = "SYS_ADMIN";
 
     public static final String RESOURCE_CPU = "cpu";
     public static final String RESOURCE_MEM = "memory";

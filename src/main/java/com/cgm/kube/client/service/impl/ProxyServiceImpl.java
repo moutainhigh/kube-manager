@@ -25,9 +25,11 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author cgm
+ * @deprecated 未达到预期效果，改用Service + Ingress实现
  */
 @Service
 @Slf4j
+@Deprecated
 public class ProxyServiceImpl implements IProxyService {
     private static final String PROXY_PREFIX = "/proxy/";
 
