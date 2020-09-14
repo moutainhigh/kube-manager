@@ -25,7 +25,7 @@ public class CustomizeFilterInvocationSecurityMetadataSource implements FilterIn
     public Collection<ConfigAttribute> getAttributes(Object o) {
         // 获取请求地址和http方法
         FilterInvocation filterInvocation = ((FilterInvocation) o);
-        String requestUrl = filterInvocation.getRequestUrl();
+        String requestUrl = filterInvocation.getRequest().getRequestURI();
         String httpMethod = filterInvocation.getRequest().getMethod();
 
         // 查询哪些角色具有权限，空列表表示不拦截

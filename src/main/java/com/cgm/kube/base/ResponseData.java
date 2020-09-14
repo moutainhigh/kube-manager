@@ -57,9 +57,9 @@ public class ResponseData {
         setRows(object);
     }
 
-    public ResponseData(boolean success, Object object) {
+    public ResponseData(boolean success, String message) {
         this(success);
-        setRows(object);
+        setMessage(message);
     }
 
     public String getCode() {

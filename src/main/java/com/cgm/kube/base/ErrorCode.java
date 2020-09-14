@@ -12,8 +12,8 @@ public class ErrorCode {
     public static final String USER_DISABLE = "账号不可用";
     public static final String USER_NOT_EXIST = "账号不存在";
     public static final String USER_LOCKED = "账号已锁定";
-    public static final Object USER_NOT_LOGIN = "未登录";
-    public static final Object USER_SESSION_EXPIRED = "登录失效";
+    public static final String USER_NOT_LOGIN = "未登录";
+    public static final String USER_SESSION_EXPIRED = "登录失效";
 
     public static final String QUERY_FAILED = "查询失败";
 
