@@ -2,8 +2,10 @@ package com.cgm.kube.account.entity;
 
 import com.cgm.kube.base.Constant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.GeneratedValue;
@@ -203,11 +205,13 @@ public class SysUser implements UserDetails, Serializable {
     }
 
     public boolean isSystemAdmin() {
-        if (roles.isEmpty()) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        if (authorities.isEmpty()) {
             return false;
         }
-        for (SysRole role : roles) {
-            if (Constant.ROLE_SYSTEM_ADMIN.equals(role.getCode())) {
+        for (GrantedAuthority authority : authorities) {
+            if (Constant.ROLE_SYSTEM_ADMIN.equals(authority.getAuthority())) {
                 return true;
             }
         }

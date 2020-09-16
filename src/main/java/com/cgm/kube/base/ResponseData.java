@@ -62,6 +62,13 @@ public class ResponseData {
         setMessage(message);
     }
 
+    public ResponseData(String code, String message, Object rows, boolean success) {
+        this.code = code;
+        this.message = message;
+        this.success = success;
+        setRows(rows);
+    }
+
     public String getCode() {
         return code;
     }

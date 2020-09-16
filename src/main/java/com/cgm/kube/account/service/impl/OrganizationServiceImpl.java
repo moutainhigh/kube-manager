@@ -32,10 +32,10 @@ public class OrganizationServiceImpl implements IOrganizationService {
     @Transactional(rollbackFor = Exception.class)
     public void addOrganization(Organization organization) throws ApiException {
         SysUser user = sysUserService.getById(10000001L);
-        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.PERMISSION_DENIED);
+        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.USER_PERMISSION_DENIED);
 
         organizationMapper.insertSelective(organization);
-        Assert.notNull(organization.getId(), ErrorCode.ORG_ADD_FAILED);
+        Assert.notNull(organization.getId(), ErrorCode.SYS_ORG_ADD_FAILED);
         namespaceService.initNamespace(organization.getId());
     }
 }

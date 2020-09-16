@@ -34,7 +34,7 @@ public class CustomizeAccessDecisionManager implements AccessDecisionManager {
                 }
             }
         }
-        throw new AccessDeniedException(ErrorCode.PERMISSION_DENIED);
+        throw new AccessDeniedException(ErrorCode.USER_PERMISSION_DENIED);
     }
 
     @Override

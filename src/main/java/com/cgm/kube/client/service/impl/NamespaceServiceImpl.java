@@ -27,7 +27,7 @@ public class NamespaceServiceImpl implements INamespaceService {
     public void initNamespace(Long organizationId) throws ApiException {
         // 先判断当前登录用户是否是超级管理员
         SysUser user = sysUserService.getById(10000001L);
-        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.PERMISSION_DENIED);
+        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.USER_PERMISSION_DENIED);
 
         String name = "ns" + organizationId;
         this.initNamespace(name);

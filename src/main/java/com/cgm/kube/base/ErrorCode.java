@@ -1,35 +1,48 @@
 package com.cgm.kube.base;
 
 /**
+ * 错误编码
+ * 排序：USER->SYS->KUBE->
+ * 字段名规则：USER/SYS/第三方系统开头，全部大写下划线
+ * 编码规则：user/sys/第三方系统开头，层级用小数点分隔，短语用下划线连接，全部小写
+ *
  * @author cgm
  */
 public class ErrorCode {
-    public static final String DEFAULT_FAIL = "失败";
-
-    public static final String USER_ACCOUNT_EXPIRED = "账号过期";
-    public static final String USER_CREDENTIALS_ERROR = "用户名或密码有误";
-    public static final String USER_CREDENTIALS_EXPIRED = "密码过期";
-    public static final String USER_DISABLE = "账号不可用";
-    public static final String USER_NOT_EXIST = "账号不存在";
-    public static final String USER_LOCKED = "账号已锁定";
-    public static final String USER_NOT_LOGIN = "未登录";
-    public static final String USER_SESSION_EXPIRED = "登录失效";
-
-    public static final String QUERY_FAILED = "查询失败";
-
-    public static final String NO_FIELD = "字段缺失";
-
-    public static final String PROXY_ERROR = "代理异常";
-
-    public static final String NO_FREE_PORT = "未找到空闲端口";
-
-    public static final String PORT_NOT_SPECIFIED = "未指定端口";
-
-    public static final String PERMISSION_DENIED = "没有权限";
-
-    public static final String ORG_ADD_FAILED = "新增组织失败";
 
     private ErrorCode() {
 
     }
+
+    public static final String RESULT_SUCCESS = "result.success";
+    public static final String RESULT_CREATED = "result.created";
+
+
+    public static final String USER_ACCOUNT_EXPIRED = "user.account_expired";
+    public static final String USER_CREDENTIALS_ERROR = "user.credentials_error";
+    public static final String USER_CREDENTIALS_EXPIRED = "user.credentials_expired";
+    public static final String USER_DISABLE = "user.disable";
+    public static final String USER_NOT_EXIST = "user.not_exist";
+    public static final String USER_LOCKED = "user.locked";
+    public static final String USER_NOT_LOGIN = "user.not_login";
+    public static final String USER_SESSION_EXPIRED = "user.session_expired";
+
+    public static final String USER_PERMISSION_DENIED = "user.permission_denied";
+
+    public static final String SYS_OTHER_ERROR = "sys.other_error";
+
+    public static final String SYS_QUERY_FAILED = "sys.query_failed";
+    public static final String SYS_NO_FIELD = "sys.no_field";
+
+    public static final String SYS_PROXY_ERROR = "sys.proxy_error";
+
+    public static final String SYS_NO_FREE_PORT = "sys.no_free_port";
+
+    public static final String SYS_ORG_ADD_FAILED = "sys.org.add.failed";
+
+    public static final String KUBE_API_EXCEPTION = "kube.api.exception";
+
+    public static final String KUBE_API_NOT_FOUND = "kube.api.not_found";
+    public static final String KUBE_API_CONFLICT = "kube.api.conflict";
+
 }

@@ -61,7 +61,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1DeploymentList list = api.listNamespacedDeployment("ns" + organizationId, "true", true,
                 null, null, null, paramDTO.getLimit(), null, 5, false);
-        Assert.notNull(list.getItems(), ErrorCode.NO_FIELD);
+        Assert.notNull(list.getItems(), ErrorCode.SYS_NO_FIELD);
         if (list.getItems().isEmpty()) {
             return new ArrayList<>();
         }
@@ -96,7 +96,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         serviceService.createService(namespace, serviceName, deployment.getName(), freePort, targetPort);
 
         // 3.创建Ingress
-        Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.NO_FIELD);
+        Assert.isTrue(kubeDeployment.getMetadata() != null, ErrorCode.SYS_NO_FIELD);
         String uid = kubeDeployment.getMetadata().getUid();
         ingressService.createIngress(namespace, uid, serviceName, image, freePort);
 

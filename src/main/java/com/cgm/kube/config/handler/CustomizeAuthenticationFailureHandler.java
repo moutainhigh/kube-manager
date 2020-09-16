@@ -3,10 +3,13 @@ package com.cgm.kube.config.handler;
 import com.alibaba.fastjson.JSON;
 import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.base.ResponseData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,10 +21,11 @@ import java.io.IOException;
  */
 @Component
 public class CustomizeAuthenticationFailureHandler implements AuthenticationFailureHandler {
-
+    @Autowired
+    private MessageSource messageSource;
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse httpServletResponse,
                                         AuthenticationException e) throws IOException {
         // 错误代码
         String errorCode;
@@ -45,9 +49,10 @@ public class CustomizeAuthenticationFailureHandler implements AuthenticationFail
             errorCode = ErrorCode.USER_LOCKED;
         } else {
             // 其他错误
-            errorCode = ErrorCode.DEFAULT_FAIL;
+            errorCode = ErrorCode.SYS_OTHER_ERROR;
         }
-        ResponseData responseData = new ResponseData(false, errorCode);
+        String localeMessage = messageSource.getMessage(errorCode, null, RequestContextUtils.getLocale(request));
+        ResponseData responseData = new ResponseData(errorCode, localeMessage, null, false);
         httpServletResponse.setContentType("text/json;charset=utf-8");
         httpServletResponse.getWriter().write(JSON.toJSONString(responseData));
     }

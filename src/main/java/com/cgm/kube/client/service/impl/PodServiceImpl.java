@@ -27,13 +27,13 @@ public class PodServiceImpl implements IPodService {
         CoreV1Api api = new CoreV1Api();
         V1PodList v1PodList = api.listNamespacedPod("ns" + organizationId, "true", null, null,
                 null, null, null, null, null, null);
-        Assert.notEmpty(v1PodList.getItems(), ErrorCode.QUERY_FAILED);
+        Assert.notEmpty(v1PodList.getItems(), ErrorCode.SYS_QUERY_FAILED);
 
         // 为避免空指针异常，不使用lambda表达式
         List<UserPodDTO> podDTOList = new ArrayList<>();
         for (V1Pod v1Pod : v1PodList.getItems()) {
-            Assert.isTrue(v1Pod.getMetadata() != null, ErrorCode.NO_FIELD);
-            Assert.isTrue(v1Pod.getMetadata().getName() != null, ErrorCode.NO_FIELD);
+            Assert.isTrue(v1Pod.getMetadata() != null, ErrorCode.SYS_NO_FIELD);
+            Assert.isTrue(v1Pod.getMetadata().getName() != null, ErrorCode.SYS_NO_FIELD);
             if (v1Pod.getMetadata().getName().startsWith(name)) {
                 podDTOList.add(new UserPodDTO(v1Pod));
             }

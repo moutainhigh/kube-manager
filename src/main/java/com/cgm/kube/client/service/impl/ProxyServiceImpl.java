@@ -58,7 +58,7 @@ public class ProxyServiceImpl implements IProxyService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BaseException(ErrorCode.PROXY_ERROR);
+            throw new BaseException(ErrorCode.SYS_PROXY_ERROR);
         }
     }
 

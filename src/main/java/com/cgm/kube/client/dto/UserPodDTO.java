@@ -33,9 +33,9 @@ public class UserPodDTO {
     }
 
     public UserPodDTO(V1Pod v1Pod) {
-        Assert.notNull(v1Pod, ErrorCode.NO_FIELD);
-        Assert.isTrue(v1Pod.getMetadata() != null, ErrorCode.NO_FIELD);
-        Assert.isTrue(v1Pod.getSpec() != null, ErrorCode.NO_FIELD);
+        Assert.notNull(v1Pod, ErrorCode.SYS_NO_FIELD);
+        Assert.isTrue(v1Pod.getMetadata() != null, ErrorCode.SYS_NO_FIELD);
+        Assert.isTrue(v1Pod.getSpec() != null, ErrorCode.SYS_NO_FIELD);
 
         this.uid = v1Pod.getMetadata().getUid();
         this.name = v1Pod.getMetadata().getName();

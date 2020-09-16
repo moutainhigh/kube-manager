@@ -8,9 +8,12 @@ public class Constant {
     }
 
     /**
-     * 系统超级管理员角色，其他角色不得包含"system_admin"
+     * 系统超级管理员角色，为避免误用，其他角色不得包含"SYS_ADMIN"
      */
     public static final String ROLE_SYSTEM_ADMIN = "SYS_ADMIN";
+
+    public static final int CODE_NOT_FOUND = 404;
+    public static final int CODE_CONFLICT = 409;
 
     public static final String RESOURCE_CPU = "cpu";
     public static final String RESOURCE_MEM = "memory";
@@ -20,12 +23,6 @@ public class Constant {
     public static final String RESOURCE_GPU_DEFAULT = "0";
 
     public static final String IMAGE_TYPE_TERMINAL = "terminal";
-
-    /**
-     * 在k8s状态中，以字符串“True”表示真
-     */
-    public static final String TRUE = "True";
-    public static final String FALSE = "False";
 
     public static final String STATUS_READY = "Ready";
     public static final String STATUS_STARTING = "Starting";

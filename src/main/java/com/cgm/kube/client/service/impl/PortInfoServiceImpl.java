@@ -26,7 +26,7 @@ public class PortInfoServiceImpl implements IPortInfoService {
     @Transactional(rollbackFor = Exception.class)
     public int getFreePort() {
         PortInfo basicInfo = basicInfoMapper.selectByPrimaryKey(1);
-        Assert.notNull(basicInfo, ErrorCode.QUERY_FAILED);
+        Assert.notNull(basicInfo, ErrorCode.SYS_QUERY_FAILED);
 
         int newPort = basicInfo.getCurrentPort() + 1;
         int tryTimes = 0;
@@ -39,7 +39,7 @@ public class PortInfoServiceImpl implements IPortInfoService {
         }
 
         // 重试次数校验，更新数据库，返回新端口
-        Assert.isTrue(tryTimes < basicInfo.getMaxRetry(), ErrorCode.NO_FREE_PORT);
+        Assert.isTrue(tryTimes < basicInfo.getMaxRetry(), ErrorCode.SYS_NO_FREE_PORT);
         basicInfo.setCurrentPort(newPort);
         basicInfoMapper.updateByPrimaryKey(basicInfo);
         log.debug("Free port: {}", newPort);

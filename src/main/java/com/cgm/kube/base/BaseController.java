@@ -1,6 +1,5 @@
 package com.cgm.kube.base;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Throwables;
 import io.kubernetes.client.openapi.ApiException;
 import org.slf4j.Logger;
@@ -14,7 +13,6 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author cgm
@@ -25,10 +23,6 @@ public class BaseController {
 
     @Autowired
     private MessageSource messageSource;
-
-    public MessageSource getMessageSource() {
-        return messageSource;
-    }
 
     /**
      * 处理控制层所有异常
@@ -42,32 +36,29 @@ public class BaseController {
     public Object exceptionHandler(Exception exception, HttpServletRequest request) {
         logger.error(exception.getMessage(), exception);
         Throwable thr = Throwables.getRootCause(exception);
-        if (notModelAndView(request)) {
+        Locale locale = RequestContextUtils.getLocale(request);
+
+        if (isRestRequest(request)) {
             ResponseData res = new ResponseData(false);
             if (thr instanceof BaseException) {
                 // 通用异常处理
-                BaseException be = (BaseException) thr;
-                res.setCode(be.getCode());
-                res.setMessage(be.getMessage());
-                res.setRows(be.getTrace());
+                res = ResultUtils.handleBaseException((BaseException) thr);
             } else if (thr instanceof ApiException) {
                 // 来自k8s api-server的异常
-                ApiException ae = (ApiException) thr;
-                res.setCode(String.valueOf(ae.getCode()));
-                Map<String, Object> map = JSON.parseObject(ae.getResponseBody());
-                res.setMessage(ae.getMessage());
-                res.setRows(map.get("message"));
+                res = ResultUtils.handleKubeException((ApiException) thr);
             } else {
                 // 其他异常
                 res.setMessage(thr.getMessage());
             }
+
+            // 多语言提示
+            res.setMessage(messageSource.getMessage(res.getCode(), null, locale));
             return res;
         } else {
             // 返回mv，本项目暂不存在mv
             ModelAndView view = new ModelAndView("500");
             if (thr instanceof BaseException) {
                 BaseException be = (BaseException) thr;
-                Locale locale = RequestContextUtils.getLocale(request);
                 String message = messageSource.getMessage(be.getCode(), null, locale);
                 view.addObject("message", message);
             }
@@ -76,7 +67,7 @@ public class BaseController {
     }
 
 
-    private boolean notModelAndView(HttpServletRequest request) {
+    private boolean isRestRequest(HttpServletRequest request) {
         String xr = request.getHeader("X-Requested-With");
         if ("XMLHttpRequest".equals(xr)) {
             return true;
