@@ -16,7 +16,7 @@ public class ImageUtils {
 
     private static final String[] PORT6080_IMAGES = {};
 
-    private static final String[] PORT7681_IMAGES = {"tsl0922/ttyd"};
+    private static final String[] PORT7681_IMAGES = {"tsl0922/ttyd", "tydd2"};
 
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 

@@ -207,6 +207,7 @@ public class UserDeploymentDTO {
                 .emptyDir(new V1EmptyDirVolumeSource());
         V1PodSpec podSpec = new V1PodSpec()
                 .containers(Collections.singletonList(podContainer))
+                .dnsPolicy("Default")
                 .volumes(Collections.singletonList(volume));
 
         // spec配置
