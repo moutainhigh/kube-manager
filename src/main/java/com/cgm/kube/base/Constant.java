@@ -17,10 +17,16 @@ public class Constant {
 
     public static final String RESOURCE_CPU = "cpu";
     public static final String RESOURCE_MEM = "memory";
-    public static final String RESOURCE_GPU = "nvidia.com/gpu";
+    public static final String RESOURCE_NVIDIA_GPU = "nvidia.com/gpu";
+    public static final String RESOURCE_ALI_GPU_MEM = "aliyun.com/gpu-mem";
+    public static final String RESOURCE_ALI_GPU_COUNT = "aliyun.com/gpu-count";
 
     public static final String RESOURCE_NOT_SET = "未设置";
     public static final String RESOURCE_GPU_DEFAULT = "0";
+
+    public static final String UNIT_GPU_MEM = "G";
+
+    public static final String REGEX_NATURAL_NUMBER = "[0-9]+";
 
     public static final String IMAGE_TYPE_TERMINAL = "terminal";
 

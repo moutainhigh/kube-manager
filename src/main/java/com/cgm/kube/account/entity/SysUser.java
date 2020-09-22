@@ -15,6 +15,9 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
+ * 用户实体类
+ * 因实现了UserDetails接口，会与lombok发生冲突，所以不使用lombok注解
+ *
  * @author cgm
  */
 public class SysUser implements UserDetails, Serializable {
@@ -33,7 +36,9 @@ public class SysUser implements UserDetails, Serializable {
 
     private Integer memLimits;
 
-    private Integer gpuLimits;
+    private Integer gpuCountLimits;
+
+    private Integer gpuMemLimits;
 
     private Boolean enabled;
 
@@ -105,12 +110,20 @@ public class SysUser implements UserDetails, Serializable {
         this.memLimits = memLimits;
     }
 
-    public Integer getGpuLimits() {
-        return gpuLimits;
+    public Integer getGpuCountLimits() {
+        return gpuCountLimits;
     }
 
-    public void setGpuLimits(Integer gpuLimits) {
-        this.gpuLimits = gpuLimits;
+    public void setGpuCountLimits(Integer gpuCountLimits) {
+        this.gpuCountLimits = gpuCountLimits;
+    }
+
+    public Integer getGpuMemLimits() {
+        return gpuMemLimits;
+    }
+
+    public void setGpuMemLimits(Integer gpuMemLimits) {
+        this.gpuMemLimits = gpuMemLimits;
     }
 
     public void setEnable(Boolean enabled) {
@@ -205,6 +218,7 @@ public class SysUser implements UserDetails, Serializable {
     }
 
     public boolean isSystemAdmin() {
+        // 因目前swagger无法登录，如需使用swagger测试，将本方法改为直接返回true
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         if (authorities.isEmpty()) {

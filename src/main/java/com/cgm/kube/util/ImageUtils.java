@@ -10,7 +10,7 @@ public class ImageUtils {
 
     private static final String[] BACKGROUND_IMAGES = {"centos", "redhat", "ubuntu"};
 
-    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook"};
+    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook"};
 
     private static final String[] PORT80_IMAGES = {"nginx", "httpd", "dorowu/ubuntu-desktop-lxde-vnc"};
 
@@ -20,7 +20,7 @@ public class ImageUtils {
 
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 
-    private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook"};
+    private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook"};
 
     private ImageUtils() {
 

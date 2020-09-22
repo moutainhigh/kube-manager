@@ -1,12 +1,10 @@
 package com.cgm.kube.account.service.impl;
 
 import com.cgm.kube.account.entity.Organization;
-import com.cgm.kube.account.entity.SysRole;
 import com.cgm.kube.account.entity.SysUser;
 import com.cgm.kube.account.mapper.OrganizationMapper;
 import com.cgm.kube.account.service.IOrganizationService;
 import com.cgm.kube.account.service.ISysUserService;
-import com.cgm.kube.base.Constant;
 import com.cgm.kube.base.ErrorCode;
 import com.cgm.kube.client.service.INamespaceService;
 import io.kubernetes.client.openapi.ApiException;
@@ -32,7 +30,7 @@ public class OrganizationServiceImpl implements IOrganizationService {
     @Transactional(rollbackFor = Exception.class)
     public void addOrganization(Organization organization) throws ApiException {
         SysUser user = sysUserService.getById(10000001L);
-        Assert.isTrue(user.getRoles().contains(new SysRole(Constant.ROLE_SYSTEM_ADMIN)), ErrorCode.USER_PERMISSION_DENIED);
+        Assert.isTrue(user.isSystemAdmin(), ErrorCode.USER_PERMISSION_DENIED);
 
         organizationMapper.insertSelective(organization);
         Assert.notNull(organization.getId(), ErrorCode.SYS_ORG_ADD_FAILED);

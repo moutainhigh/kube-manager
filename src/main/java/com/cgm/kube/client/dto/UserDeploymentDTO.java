@@ -50,7 +50,7 @@ public class UserDeploymentDTO {
     @ApiModelProperty(value = "内存上限（单位：Mi，兆字节）", example = "256Mi")
     private String memLimits;
 
-    @ApiModelProperty(value = "gpu要求（单位：自然数，一个）", example = "1")
+    @ApiModelProperty(value = "gpu要求（纯数字表示按块，带G表示显存）", example = "1")
     private String gpuLimits;
 
     @ApiModelProperty(value = "pod端口", example = "80")
@@ -115,9 +115,7 @@ public class UserDeploymentDTO {
         if (resource.getLimits() != null) {
             this.cpuLimits = resource.getLimits().get(Constant.RESOURCE_CPU).toSuffixedString();
             this.memLimits = resource.getLimits().get(Constant.RESOURCE_MEM).toSuffixedString();
-            Quantity gpuLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_GPU);
-            this.gpuLimits = gpuLimitsQuantity == null ?
-                    Constant.RESOURCE_GPU_DEFAULT : gpuLimitsQuantity.toSuffixedString();
+            this.gpuLimits = handleGpuLimits(resource);
         } else {
             this.cpuLimits = Constant.RESOURCE_NOT_SET;
             this.memLimits = Constant.RESOURCE_NOT_SET;
@@ -190,17 +188,27 @@ public class UserDeploymentDTO {
         limitsMap.put("cpu", new Quantity(this.cpuLimits));
         limitsMap.put("memory", new Quantity(this.memLimits));
         if (!Constant.RESOURCE_GPU_DEFAULT.equals(this.gpuLimits)) {
-            limitsMap.put("nvidia.com/gpu", new Quantity(this.gpuLimits));
+            // 对按块/按显存调度的处理
+            if(gpuLimits.endsWith(Constant.UNIT_GPU_MEM)) {
+                limitsMap.put(Constant.RESOURCE_ALI_GPU_MEM, new Quantity(this.gpuLimits
+                        .replace(Constant.UNIT_GPU_MEM, "")));
+            } else if (gpuLimits.matches(Constant.REGEX_NATURAL_NUMBER)){
+                limitsMap.put(Constant.RESOURCE_ALI_GPU_COUNT, new Quantity(this.gpuLimits));
+            }
         }
         V1ResourceRequirements resource = new V1ResourceRequirements()
                 .requests(requestsMap)
                 .limits(limitsMap);
 
         // pod模板的spec配置，spec->template->spec
+        V1EnvVar envVar = new V1EnvVar()
+                .name("NVIDIA_VISIBLE_DEVICES")
+                .value("all");
         V1Container podContainer = new V1Container()
                 .name(this.name)
                 .image(this.image)
                 .imagePullPolicy("IfNotPresent")
+                .env(Collections.singletonList(envVar))
                 .resources(resource);
         V1Volume volume = new V1Volume()
                 .name(this.name + "volume")
@@ -227,6 +235,21 @@ public class UserDeploymentDTO {
                 .withMetadata(metaData)
                 .withSpec(spec)
                 .build();
+    }
+
+    private String handleGpuLimits(V1ResourceRequirements resource) {
+        Assert.isTrue(resource != null, ErrorCode.SYS_NO_FIELD);
+        Assert.isTrue(resource.getLimits() != null, ErrorCode.SYS_NO_FIELD);
+
+        Quantity gpuCountLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_ALI_GPU_COUNT);
+        Quantity gpuMemLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_ALI_GPU_COUNT);
+        if (gpuCountLimitsQuantity != null) {
+            return gpuCountLimitsQuantity.toSuffixedString();
+        }
+        if (gpuMemLimitsQuantity != null) {
+            return gpuMemLimitsQuantity.toSuffixedString() + Constant.UNIT_GPU_MEM;
+        }
+        return Constant.RESOURCE_GPU_DEFAULT;
     }
 
 }

@@ -136,7 +136,7 @@ public class IngressServiceImpl implements IIngressService {
         ExtensionsV1beta1HTTPIngressRuleValue http = new ExtensionsV1beta1HTTPIngressRuleValue()
                 .paths(paths);
         ExtensionsV1beta1IngressRule rule = new ExtensionsV1beta1IngressRule()
-                .host("node110")
+                .host("node17")
                 .http(http);
         List<ExtensionsV1beta1IngressRule> rules = Collections.singletonList(rule);
         return new ExtensionsV1beta1IngressSpec().rules(rules);
