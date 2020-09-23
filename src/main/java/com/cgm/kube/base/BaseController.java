@@ -39,7 +39,7 @@ public class BaseController {
         Locale locale = RequestContextUtils.getLocale(request);
 
         if (isRestRequest(request)) {
-            ResponseData res = new ResponseData(false);
+            ResponseData res;
             if (thr instanceof BaseException) {
                 // 通用异常处理
                 res = ResultUtils.handleBaseException((BaseException) thr);
@@ -48,7 +48,7 @@ public class BaseController {
                 res = ResultUtils.handleKubeException((ApiException) thr);
             } else {
                 // 其他异常
-                res.setMessage(thr.getMessage());
+                res = ResultUtils.handleOtherException(thr);
             }
 
             // 多语言提示

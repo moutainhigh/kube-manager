@@ -49,7 +49,7 @@ public class CustomizeAuthenticationFailureHandler implements AuthenticationFail
             errorCode = ErrorCode.USER_LOCKED;
         } else {
             // 其他错误
-            errorCode = ErrorCode.SYS_OTHER_ERROR;
+            errorCode = ErrorCode.SYS_INTERNAL_ERROR;
         }
         String localeMessage = messageSource.getMessage(errorCode, null, RequestContextUtils.getLocale(request));
         ResponseData responseData = new ResponseData(errorCode, localeMessage, null, false);

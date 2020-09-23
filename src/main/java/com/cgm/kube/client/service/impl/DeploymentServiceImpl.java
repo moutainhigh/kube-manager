@@ -187,7 +187,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         if (ResourceFormatter.formatCpu(deployment.getCpuLimits()) > user.getCpuLimits()
                 || ResourceFormatter.formatMem(deployment.getMemLimits()) > user.getMemLimits()
                 || ResourceFormatter.formatGpu(deployment.getGpuLimits()) > user.getGpuCountLimits()) {
-            throw new BaseException("超过了资源限制");
+            throw new BaseException(ErrorCode.USER_RESOURCE_LIMIT_EXCEEDED);
         }
     }
 }

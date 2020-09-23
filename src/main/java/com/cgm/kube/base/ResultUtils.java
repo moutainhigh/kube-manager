@@ -3,13 +3,20 @@ package com.cgm.kube.base;
 import com.alibaba.fastjson.JSON;
 import io.kubernetes.client.openapi.ApiException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
  * @author cgm
  */
 public class ResultUtils {
+    private static final String TRACE_BREAK = "\r\n\t";
+
     private ResultUtils() {
 
     }
@@ -26,20 +33,6 @@ public class ResultUtils {
         return new ResponseData(ErrorCode.RESULT_CREATED, "success", rows, true);
     }
 
-    public static ResponseData failed(String errorCode) {
-        return new ResponseData(errorCode, errorCode, null, false);
-    }
-
-    /**
-     * 处理通用异常
-     *
-     * @param exception 通用异常
-     * @return 数据返回对象
-     */
-    public static ResponseData handleBaseException(BaseException exception) {
-        return new ResponseData(exception.getCode(), exception.getCode(), exception.getTrace(), false);
-    }
-
     /**
      * 将kubernetes api返回的异常进行转义
      *
@@ -52,6 +45,46 @@ public class ResultUtils {
         Map<String, Object> map = JSON.parseObject(exception.getResponseBody());
         responseData.setRows(exception.getCode() + " " + exception.getMessage() + ": " + map.get("message"));
         return responseData;
+    }
+
+    /**
+     * 处理通用异常
+     *
+     * @param exception 通用异常
+     * @return 数据返回对象
+     */
+    public static ResponseData handleBaseException(BaseException exception) {
+        String[] traceArray = exception.getTrace().split(TRACE_BREAK);
+
+        // 按包名过滤需要的堆栈信息, startsWith加速匹配，offset为开头的"at "长度
+        String basePackage = ResultUtils.class.getPackage().getName().replace(".base", "");
+        List<String> traceList = Arrays.stream(traceArray)
+                .filter(e -> e.startsWith(basePackage, 3) || e.startsWith(basePackage))
+                .collect(Collectors.toList());
+        return new ResponseData(exception.getCode(), null, null, traceList);
+    }
+
+    /**
+     * 处理其他异常
+     *
+     * @param exception 异常
+     * @return 数据返回对象
+     */
+    public static ResponseData handleOtherException(Throwable exception) {
+        // 堆栈转字符串数组
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(outputStream);
+        exception.printStackTrace(ps);
+        ps.flush();
+        String trace = new String(outputStream.toByteArray());
+        String[] traceArray = trace.split(TRACE_BREAK);
+
+        // 按包名过滤需要的堆栈信息, startsWith加速匹配，offset为开头的"at "长度
+        String basePackage = ResultUtils.class.getPackage().getName().replace(".base", "");
+        List<String> traceList = Arrays.stream(traceArray)
+                .filter(e -> e.startsWith(basePackage, 3) || e.startsWith(basePackage))
+                .collect(Collectors.toList());
+        return new ResponseData(ErrorCode.SYS_INTERNAL_ERROR, null, exception.getMessage(), traceList);
     }
 
     /**

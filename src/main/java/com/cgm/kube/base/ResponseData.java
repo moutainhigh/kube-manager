@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * 数据返回对象
+ *
  * @author cgm
  */
 public class ResponseData {
@@ -21,18 +22,24 @@ public class ResponseData {
 
     /**
      * 提示信息
-     * 通常直接在前端展示
+     * 错误消息直接在前端展示，需要让用户可读
      */
     @JsonInclude(Include.NON_NULL)
     private String message;
 
     /**
      * 数据
-     * 发生异常时，返回异常堆栈，供开发人员定位问题
-     * 调用外部接口时，使用外部接口的错误信息，不返回无意义的内部异常堆栈
+     * 发生异常时，返回错误描述，需要开发人员可读
+     * 调用外部接口时，使用外部接口的错误信息
      */
     @JsonInclude(Include.NON_NULL)
     private Object rows;
+
+    /**
+     * 异常堆栈
+     */
+    @JsonInclude(Include.NON_NULL)
+    private List<String> trace;
 
     /**
      * 成功标识
@@ -69,6 +76,14 @@ public class ResponseData {
         setRows(rows);
     }
 
+    public ResponseData(String code, String message, Object rows, List<String> trace) {
+        this.code = code;
+        this.message = message;
+        this.success = false;
+        setRows(rows);
+        this.trace = trace;
+    }
+
     public String getCode() {
         return code;
     }
@@ -79,6 +94,10 @@ public class ResponseData {
 
     public Object getRows() {
         return rows;
+    }
+
+    public List<String> getTrace() {
+        return trace;
     }
 
     public Integer getTotal() {
@@ -106,7 +125,7 @@ public class ResponseData {
         try {
             if (rows instanceof List) {
                 setTotal((Integer) rows.getClass().getMethod("size").invoke(rows));
-            } else if (PAGE_CLASS_NAME.equals(rows.getClass().getCanonicalName())){
+            } else if (PAGE_CLASS_NAME.equals(rows.getClass().getCanonicalName())) {
                 // 暂未引入pageHelper，以上表达式恒为false
                 setTotal((Integer) rows.getClass().getDeclaredMethod("getTotal").invoke(rows));
             } else {
@@ -115,6 +134,10 @@ public class ResponseData {
         } catch (Exception e) {
             throw new BaseException("Get page total failed!", e);
         }
+    }
+
+    public void setTrace(List<String> trace) {
+        this.trace = trace;
     }
 
     public void setSuccess(boolean success) {

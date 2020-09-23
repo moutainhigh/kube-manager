@@ -29,7 +29,9 @@ public class ErrorCode {
 
     public static final String USER_PERMISSION_DENIED = "user.permission_denied";
 
-    public static final String SYS_OTHER_ERROR = "sys.other_error";
+    public static final String USER_RESOURCE_LIMIT_EXCEEDED = "user.resource_limit_exceeded";
+
+    public static final String SYS_INTERNAL_ERROR = "sys.internal_error";
 
     public static final String SYS_QUERY_FAILED = "sys.query_failed";
     public static final String SYS_NO_FIELD = "sys.no_field";
@@ -38,7 +40,7 @@ public class ErrorCode {
 
     public static final String SYS_NO_FREE_PORT = "sys.no_free_port";
 
-    public static final String SYS_ORG_ADD_FAILED = "sys.org.add.failed";
+    public static final String SYS_ORG_ADD_FAILED = "sys.org_add_failed";
 
     public static final String KUBE_API_EXCEPTION = "kube.api.exception";
 
