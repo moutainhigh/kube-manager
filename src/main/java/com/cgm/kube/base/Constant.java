@@ -12,6 +12,8 @@ public class Constant {
      */
     public static final String ROLE_SYSTEM_ADMIN = "SYS_ADMIN";
 
+    public static final String ROLE_USER = "USER";
+
     public static final int CODE_NOT_FOUND = 404;
     public static final int CODE_CONFLICT = 409;
 

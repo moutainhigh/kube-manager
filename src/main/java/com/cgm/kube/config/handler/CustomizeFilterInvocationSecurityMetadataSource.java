@@ -1,6 +1,7 @@
 package com.cgm.kube.config.handler;
 
 import com.cgm.kube.account.service.ISysPermissionService;
+import com.cgm.kube.base.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -31,8 +32,8 @@ public class CustomizeFilterInvocationSecurityMetadataSource implements FilterIn
         // 查询哪些角色具有权限，空列表表示不拦截
         List<String> allowRoles = sysPermissionService.listPermissionRoles(requestUrl, httpMethod);
         if (allowRoles.isEmpty()) {
-            // 请求路径没有配置权限，表明该请求接口可以任意访问
-            return new ArrayList<>();
+            // 请求路径没有配置权限，表明该请求接口可以被任何登录用户访问，匿名用户不可访问
+            return SecurityConfig.createList(Constant.ROLE_USER);
         }
         String[] attributes = new String[allowRoles.size()];
         for (int i = 0; i < allowRoles.size(); i++) {
