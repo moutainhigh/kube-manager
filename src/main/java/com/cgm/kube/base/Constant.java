@@ -41,4 +41,6 @@ public class Constant {
     public static final String CONTENT_TYPE_HTML = "text/html";
 
     public static final String CHARSET_UTF8 = "utf-8";
+
+    public static final String INGRESS_HOST = "node59";
 }

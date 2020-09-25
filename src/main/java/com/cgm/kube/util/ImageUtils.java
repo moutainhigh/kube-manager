@@ -10,7 +10,8 @@ public class ImageUtils {
 
     private static final String[] BACKGROUND_IMAGES = {"centos", "redhat", "ubuntu"};
 
-    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook"};
+    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook",
+            "jupyter/tensorflow-notebook-root"};
 
     private static final String[] PORT80_IMAGES = {"nginx", "httpd", "dorowu/ubuntu-desktop-lxde-vnc"};
 
@@ -20,7 +21,8 @@ public class ImageUtils {
 
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 
-    private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook"};
+    private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook",
+            "jupyter/tensorflow-notebook-root"};
 
     private ImageUtils() {
 
@@ -35,7 +37,7 @@ public class ImageUtils {
         // Jupyter需要修改base_url
         if (ArrayUtils.contains(JUPYTER_IMAGES, shortName)) {
             return new String[]{"/opt/conda/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'",
-                    "--NotebookApp.token=''"};
+                    "--NotebookApp.token=''", "--NotebookApp.allow_root=True"};
         }
 
         // 需要维持后台运行的镜像

@@ -242,7 +242,7 @@ public class UserDeploymentDTO {
         Assert.isTrue(resource.getLimits() != null, ErrorCode.SYS_NO_FIELD);
 
         Quantity gpuCountLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_ALI_GPU_COUNT);
-        Quantity gpuMemLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_ALI_GPU_COUNT);
+        Quantity gpuMemLimitsQuantity = resource.getLimits().get(Constant.RESOURCE_ALI_GPU_MEM);
         if (gpuCountLimitsQuantity != null) {
             return gpuCountLimitsQuantity.toSuffixedString();
         }

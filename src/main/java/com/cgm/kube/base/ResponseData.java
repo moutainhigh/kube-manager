@@ -28,9 +28,14 @@ public class ResponseData {
     private String message;
 
     /**
+     * 详细描述
+     * 与message区分开，主要展示给开发和测试人员
+     */
+    @JsonInclude(Include.NON_NULL)
+    private String detail;
+
+    /**
      * 数据
-     * 发生异常时，返回错误描述，需要开发人员可读
-     * 调用外部接口时，使用外部接口的错误信息
      */
     @JsonInclude(Include.NON_NULL)
     private Object rows;
@@ -76,11 +81,11 @@ public class ResponseData {
         setRows(rows);
     }
 
-    public ResponseData(String code, String message, Object rows, List<String> trace) {
+    public ResponseData(String code, String message, String detail, List<String> trace) {
         this.code = code;
         this.message = message;
         this.success = false;
-        setRows(rows);
+        this.detail = detail;
         this.trace = trace;
     }
 
@@ -90,6 +95,10 @@ public class ResponseData {
 
     public String getMessage() {
         return message;
+    }
+
+    public String getDetail() {
+        return detail;
     }
 
     public Object getRows() {
@@ -114,6 +123,10 @@ public class ResponseData {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
     }
 
     public void setRows(Object rows) {

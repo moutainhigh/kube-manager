@@ -40,11 +40,10 @@ public class ResultUtils {
      * @return 数据返回对象
      */
     public static ResponseData handleKubeException(ApiException exception) {
-        ResponseData responseData = new ResponseData(false);
-        responseData.setCode(handleKubeErrorCode(exception));
         Map<String, Object> map = JSON.parseObject(exception.getResponseBody());
-        responseData.setRows(exception.getCode() + " " + exception.getMessage() + ": " + map.get("message"));
-        return responseData;
+        String errorCode = handleKubeErrorCode(exception);
+        String detail = exception.getCode() + " " + exception.getMessage() + ": " + map.get("message");
+        return new ResponseData(errorCode, null, detail, null);
     }
 
     /**
