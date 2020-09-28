@@ -1,11 +1,8 @@
 package com.cgm.kube.account.entity;
 
-import com.cgm.kube.base.Constant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.GeneratedValue;
@@ -215,21 +212,6 @@ public class SysUser implements UserDetails, Serializable {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
-    }
-
-    public boolean isSystemAdmin() {
-        // 因目前swagger无法登录，如需使用swagger测试，将本方法改为直接返回true
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        if (authorities.isEmpty()) {
-            return false;
-        }
-        for (GrantedAuthority authority : authorities) {
-            if (Constant.ROLE_SYSTEM_ADMIN.equals(authority.getAuthority())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

@@ -1,8 +1,8 @@
 package com.cgm.kube.client.service.impl;
 
-import com.cgm.kube.account.entity.SysUser;
 import com.cgm.kube.account.service.ISysUserService;
 import com.cgm.kube.base.ErrorCode;
+import com.cgm.kube.base.UserUtils;
 import com.cgm.kube.client.service.INamespaceService;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -24,8 +24,7 @@ public class NamespaceServiceImpl implements INamespaceService {
     @Transactional(rollbackFor = Exception.class)
     public void initNamespace(Long organizationId) throws ApiException {
         // 先判断当前登录用户是否是超级管理员
-        SysUser user = sysUserService.getById(10000001L);
-        Assert.isTrue(user.isSystemAdmin(), ErrorCode.USER_PERMISSION_DENIED);
+        Assert.isTrue(UserUtils.isSystemAdmin(), ErrorCode.USER_PERMISSION_DENIED);
 
         String name = "ns" + organizationId;
         this.initNamespace(name);

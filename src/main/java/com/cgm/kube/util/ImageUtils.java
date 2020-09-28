@@ -10,8 +10,9 @@ public class ImageUtils {
 
     private static final String[] BACKGROUND_IMAGES = {"centos", "redhat", "ubuntu"};
 
-    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook",
-            "jupyter/tensorflow-notebook-root"};
+    private static final String[] JUPYTER_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook"};
+
+    private static final String[] TENSOR_FLOW_IMAGES = {"tensorflow/tensorflow"};
 
     private static final String[] PORT80_IMAGES = {"nginx", "httpd", "dorowu/ubuntu-desktop-lxde-vnc"};
 
@@ -22,7 +23,7 @@ public class ImageUtils {
     private static final String[] PORT8080_IMAGES = {"tomcat"};
 
     private static final String[] PORT8888_IMAGES = {"jupyter/base-notebook", "jupyter/tensorflow-notebook",
-            "jupyter/tensorflow-notebook-root"};
+            "tensorflow/tensorflow"};
 
     private ImageUtils() {
 
@@ -38,6 +39,11 @@ public class ImageUtils {
         if (ArrayUtils.contains(JUPYTER_IMAGES, shortName)) {
             return new String[]{"/opt/conda/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'",
                     "--NotebookApp.token=''", "--NotebookApp.allow_root=True"};
+        }
+
+        if (ArrayUtils.contains(TENSOR_FLOW_IMAGES, shortName)) {
+            return new String[]{"/usr/local/bin/jupyter", "notebook", "--NotebookApp.base_url='/" + uid + "/'",
+                    "--NotebookApp.token=''", "--NotebookApp.allow_root=True", "--NotebookApp.ip="};
         }
 
         // 需要维持后台运行的镜像
@@ -82,6 +88,6 @@ public class ImageUtils {
     public static boolean keepTarget(String imageName) {
         String shortName = imageName.split(BREAK)[0];
         // 当前只有Jupyter需要保持target，如果有其他镜像，考虑定义数组KEEP_TARGET_IMAGES
-        return ArrayUtils.contains(JUPYTER_IMAGES, shortName);
+        return ArrayUtils.contains(JUPYTER_IMAGES, shortName) || ArrayUtils.contains(TENSOR_FLOW_IMAGES, shortName);
     }
 }

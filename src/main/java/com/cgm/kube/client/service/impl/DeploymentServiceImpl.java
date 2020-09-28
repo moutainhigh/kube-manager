@@ -1,9 +1,9 @@
 package com.cgm.kube.client.service.impl;
 
 import com.cgm.kube.account.entity.SysUser;
-import com.cgm.kube.account.service.ISysUserService;
 import com.cgm.kube.base.BaseException;
 import com.cgm.kube.base.ErrorCode;
+import com.cgm.kube.base.UserUtils;
 import com.cgm.kube.client.dto.DeploymentParamDTO;
 import com.cgm.kube.client.service.IDeploymentService;
 import com.cgm.kube.client.dto.UserDeploymentDTO;
@@ -35,14 +35,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DeploymentServiceImpl implements IDeploymentService {
 
-    private final ISysUserService sysUserService;
     private final IPortInfoService portInfoService;
     private final IServiceService serviceService;
     private final IIngressService ingressService;
 
-    public DeploymentServiceImpl(ISysUserService sysUserService, IPortInfoService portInfoService,
-                                 IServiceService serviceService, IIngressService ingressService) {
-        this.sysUserService = sysUserService;
+    public DeploymentServiceImpl(IPortInfoService portInfoService, IServiceService serviceService,
+                                 IIngressService ingressService) {
         this.portInfoService = portInfoService;
         this.serviceService = serviceService;
         this.ingressService = ingressService;
@@ -74,7 +72,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
     @Override
     public void createDeployment(UserDeploymentDTO deployment) throws ApiException {
-        SysUser user = sysUserService.getById(10000001L);
+        SysUser user = UserUtils.getCurrentUser();
         this.checkResource(deployment, user, false);
 
         V1Deployment kubeDeployment = deployment.toKube();
@@ -83,7 +81,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
         // 1.创建Deployment
         AppsV1Api api = new AppsV1Api();
         // 避免跨组织操作，同时允许超管跨组织
-        String namespace = user.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
+        String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         kubeDeployment = api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
 
         // 2.创建Service
@@ -111,36 +109,36 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
     @Override
     public void updateDeployment(UserDeploymentDTO deployment) throws ApiException {
-        SysUser user = sysUserService.getById(10000001L);
+        SysUser user = UserUtils.getCurrentUser();
         this.checkResource(deployment, user, true);
 
         V1Deployment kubeDeployment = deployment.toKube();
         AppsV1Api api = new AppsV1Api();
         // 避免跨组织操作，同时允许超管跨组织
-        String namespace = user.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
+        String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.replaceNamespacedDeployment(deployment.getName(), namespace, kubeDeployment, "true", null, null);
     }
 
     @Override
     public void patchDeploymentScale(UserDeploymentDTO deployment) throws ApiException {
-        SysUser user = sysUserService.getById(10000001L);
+        SysUser user = UserUtils.getCurrentUser();
         this.checkResource(deployment, user, true);
 
         V1Deployment kubeDeployment = deployment.toKube();
         V1Patch patch = new V1Patch(new Gson().toJson(kubeDeployment, V1Deployment.class));
         AppsV1Api api = new AppsV1Api();
         // 避免跨组织操作，同时允许超管跨组织
-        String namespace = user.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
+        String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.patchNamespacedDeploymentScale(deployment.getName(), namespace, patch, "true", null, null, false);
     }
 
     @Override
     public void deleteDeployment(Long organizationId, String name) throws ApiException {
-        SysUser user = sysUserService.getById(10000001L);
+        SysUser user = UserUtils.getCurrentUser();
 
         AppsV1Api appsV1Api = new AppsV1Api();
         // 避免跨组织操作，同时允许超管跨组织
-        String namespace = user.isSystemAdmin() ? "ns" + organizationId : "ns" + user.getOrganizationId();
+        String namespace = UserUtils.isSystemAdmin() ? "ns" + organizationId : "ns" + user.getOrganizationId();
         appsV1Api.deleteNamespacedDeployment(name, namespace, "true", null, null,
                 null, null, null);
 
