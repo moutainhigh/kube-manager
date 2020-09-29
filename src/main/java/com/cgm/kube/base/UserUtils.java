@@ -29,6 +29,15 @@ public class UserUtils {
     }
 
     /**
+     * 获取当前请求用户的组织ID
+     *
+     * @return 组织ID
+     */
+    public static Long getCurrentUserOrgId() {
+        return getCurrentUser().getOrganizationId();
+    }
+
+    /**
      * 判断当前请求的用户是否超管
      *
      * @return 是否超管

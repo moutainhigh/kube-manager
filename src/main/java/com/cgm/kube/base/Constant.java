@@ -12,6 +12,9 @@ public class Constant {
      */
     public static final String ROLE_SYSTEM_ADMIN = "SYS_ADMIN";
 
+    /**
+     * 普通用户角色，所有登录用户都具有此角色，是除了匿名用户的最小权限集
+     */
     public static final String ROLE_USER = "USER";
 
     public static final int CODE_NOT_FOUND = 404;

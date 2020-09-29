@@ -175,6 +175,7 @@ public class UserDeploymentDTO {
         this.labels = this.labels == null ? new HashMap<>(2) : this.labels;
         this.labels.put("app", this.image.split(":")[0].substring(this.image.lastIndexOf("/") + 1));
         this.labels.put("name", this.name);
+        this.labels.put("manager", "kube-manager");
         V1ObjectMeta metaData = new V1ObjectMeta()
                 .name(this.name)
                 .namespace(this.namespace)

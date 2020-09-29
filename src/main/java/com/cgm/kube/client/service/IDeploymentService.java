@@ -15,22 +15,20 @@ public interface IDeploymentService {
     /**
      * 根据名称查询deployment
      *
-     * @param organizationId 组织ID
-     * @param name           名称
+     * @param name 名称
      * @return deployment
      * @throws ApiException api异常
      */
-    UserDeploymentDTO getDeploymentByName(Long organizationId, String name) throws ApiException;
+    UserDeploymentDTO getDeploymentByName(String name) throws ApiException;
 
     /**
      * 查询deployment
      *
-     * @param organizationId 组织ID
-     * @param paramDTO       查询参数
+     * @param paramDTO 查询参数
      * @return deployment列表
      * @throws ApiException api异常
      */
-    List<UserDeploymentDTO> listDeployment(Long organizationId, DeploymentParamDTO paramDTO) throws ApiException;
+    List<UserDeploymentDTO> listDeployment(DeploymentParamDTO paramDTO) throws ApiException;
 
     /**
      * 创建deployment
@@ -61,11 +59,11 @@ public interface IDeploymentService {
     /**
      * 删除deployment
      *
-     * @param organizationId 组织ID
-     * @param name           名称
+     * @param namespace 命名空间
+     * @param name      名称
      * @throws ApiException api异常
      */
-    void deleteDeployment(Long organizationId, String name) throws ApiException;
+    void deleteDeployment(String namespace, String name) throws ApiException;
 
 
 }

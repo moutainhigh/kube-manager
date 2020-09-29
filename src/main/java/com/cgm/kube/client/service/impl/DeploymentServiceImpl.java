@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Deployment管理实现类
+ * 超管操作其他组织时，需要组织ID/组织命名空间参数
+ *
  * @author cgm
  */
 @Service
@@ -47,25 +50,36 @@ public class DeploymentServiceImpl implements IDeploymentService {
     }
 
     @Override
-    public UserDeploymentDTO getDeploymentByName(Long organizationId, String name) throws ApiException {
+    public UserDeploymentDTO getDeploymentByName(String name) throws ApiException {
+        Long organizationId = UserUtils.getCurrentUserOrgId();
+
         AppsV1Api api = new AppsV1Api();
         api.readNamespacedDeployment(name, "ns" + organizationId, "true", null, null);
         return null;
     }
 
     @Override
-    public List<UserDeploymentDTO> listDeployment(Long organizationId, DeploymentParamDTO paramDTO) throws ApiException {
+    public List<UserDeploymentDTO> listDeployment(DeploymentParamDTO paramDTO) throws ApiException {
+        Long organizationId = UserUtils.getCurrentUserOrgId();
         AppsV1Api api = new AppsV1Api();
 
-        V1DeploymentList list = api.listNamespacedDeployment("ns" + organizationId, "true", true,
-                null, null, null, paramDTO.getLimit(), null, 5, false);
-        Assert.notNull(list.getItems(), ErrorCode.SYS_NO_FIELD);
-        if (list.getItems().isEmpty()) {
+        V1DeploymentList deploymentList;
+        // 超管查询所有组织的deployment
+        if (UserUtils.isSystemAdmin()) {
+            // 在创建deployment时使用了manager=kube-manager标签以便筛选，如果不使用此标签，查询非组织的命名空间会发生异常
+            deploymentList = api.listDeploymentForAllNamespaces(true, null, null,
+                    "manager=kube-manager", paramDTO.getLimit(), "true", null, 5, false);
+        } else {
+            deploymentList = api.listNamespacedDeployment("ns" + organizationId, "true", true, null,
+                    null, null, paramDTO.getLimit(), null, 5, false);
+        }
+        Assert.notNull(deploymentList.getItems(), ErrorCode.SYS_NO_FIELD);
+        if (deploymentList.getItems().isEmpty()) {
             return new ArrayList<>();
         }
 
         // 在k8s api-server中没有找到排序参数，暂时按时间降序
-        return list.getItems().stream().map(UserDeploymentDTO::new)
+        return deploymentList.getItems().stream().map(UserDeploymentDTO::new)
                 .sorted((a, b) -> (int) (b.getCreationTimestamp() - a.getCreationTimestamp()))
                 .collect(Collectors.toList());
     }
@@ -80,7 +94,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         // 1.创建Deployment
         AppsV1Api api = new AppsV1Api();
-        // 避免跨组织操作，同时允许超管跨组织
+        // 超管可以使用参数指定的命名空间，其他用户使用所在组织的命名空间
         String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         kubeDeployment = api.createNamespacedDeployment(namespace, kubeDeployment, "true", null, null);
 
@@ -114,7 +128,7 @@ public class DeploymentServiceImpl implements IDeploymentService {
 
         V1Deployment kubeDeployment = deployment.toKube();
         AppsV1Api api = new AppsV1Api();
-        // 避免跨组织操作，同时允许超管跨组织
+        // 超管可以使用参数指定的命名空间，其他用户使用所在组织的命名空间
         String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.replaceNamespacedDeployment(deployment.getName(), namespace, kubeDeployment, "true", null, null);
     }
@@ -127,18 +141,18 @@ public class DeploymentServiceImpl implements IDeploymentService {
         V1Deployment kubeDeployment = deployment.toKube();
         V1Patch patch = new V1Patch(new Gson().toJson(kubeDeployment, V1Deployment.class));
         AppsV1Api api = new AppsV1Api();
-        // 避免跨组织操作，同时允许超管跨组织
+        // 超管可以使用参数指定的命名空间，其他用户使用所在组织的命名空间
         String namespace = UserUtils.isSystemAdmin() ? deployment.getNamespace() : "ns" + user.getOrganizationId();
         api.patchNamespacedDeploymentScale(deployment.getName(), namespace, patch, "true", null, null, false);
     }
 
     @Override
-    public void deleteDeployment(Long organizationId, String name) throws ApiException {
-        SysUser user = UserUtils.getCurrentUser();
+    public void deleteDeployment(String namespace, String name) throws ApiException {
+        Long organizationId = UserUtils.getCurrentUserOrgId();
 
         AppsV1Api appsV1Api = new AppsV1Api();
-        // 避免跨组织操作，同时允许超管跨组织
-        String namespace = UserUtils.isSystemAdmin() ? "ns" + organizationId : "ns" + user.getOrganizationId();
+        // 超管可以使用参数指定的命名空间，其他用户使用所在组织的命名空间
+        namespace = UserUtils.isSystemAdmin() ? namespace : "ns" + organizationId;
         appsV1Api.deleteNamespacedDeployment(name, namespace, "true", null, null,
                 null, null, null);
 
