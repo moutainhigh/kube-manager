@@ -9,7 +9,7 @@
     <!--按用户名查询-->
     <select id="selectByUsername" resultMap="BaseMap">
         SELECT
-        id, username, password, cpu_limits, mem_limits, gpu_count_limits, gpu_mem_limits,
+        id, organization_id, username, password, cpu_limits, mem_limits, gpu_count_limits, gpu_mem_limits,
         last_login_time, is_enabled, create_time, update_time, updated_by
         FROM sys_user
         WHERE username = #{username}

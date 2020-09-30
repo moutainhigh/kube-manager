@@ -24,6 +24,14 @@ public interface ISysUserService extends UserDetailsService {
     SysUser getByUsername(String username);
 
     /**
+     * 创建用户
+     *
+     * @param user 用户
+     * @return 用户
+     */
+    SysUser createUser(SysUser user);
+
+    /**
      * 更新用户
      *
      * @param user 用户
