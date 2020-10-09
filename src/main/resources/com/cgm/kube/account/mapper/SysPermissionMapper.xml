@@ -5,13 +5,24 @@
     <resultMap type="com.cgm.kube.account.entity.SysPermission" id="BaseMap">
     </resultMap>
 
-    <!--根据请求查询有权限的角色列表-->
+    <!--查询指定http方法的所有权限-->
     <select id="listPermissionsByMethod" resultMap="BaseMap">
         SELECT
           id, code, path
         FROM sys_permission sp
         WHERE
           method = #{httpMethod}
+    </select>
+
+    <!--根据权限id列出具有该权限的角色-->
+    <select id="listRolesByPermissionId" resultType="java.lang.String">
+        SELECT
+          sr.code
+        FROM
+          sys_role_permission srp
+        LEFT JOIN sys_role sr ON srp.role_id = sr.id
+        WHERE
+          srp.permission_id = #{permissionId}
     </select>
 
 </mapper>

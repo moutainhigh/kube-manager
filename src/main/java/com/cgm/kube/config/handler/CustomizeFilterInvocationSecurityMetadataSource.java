@@ -29,7 +29,12 @@ public class CustomizeFilterInvocationSecurityMetadataSource implements FilterIn
         String requestUrl = filterInvocation.getRequest().getRequestURI();
         String httpMethod = filterInvocation.getRequest().getMethod();
 
-        // 查询哪些角色具有权限，空列表表示不拦截
+        // 仅拦截/api开头的接口，标记了/public的接口不拦截，不拦截时返回空列表
+        if (!requestUrl.startsWith(Constant.API_NORMAL) || requestUrl.startsWith(Constant.API_PUBLIC)) {
+            return new ArrayList<>();
+        }
+
+        // 查询哪些角色具有权限
         List<String> allowRoles = sysPermissionService.listPermissionRoles(requestUrl, httpMethod);
         if (allowRoles.isEmpty()) {
             // 请求路径没有配置权限，表明该请求接口可以被任何登录用户访问，匿名用户不可访问

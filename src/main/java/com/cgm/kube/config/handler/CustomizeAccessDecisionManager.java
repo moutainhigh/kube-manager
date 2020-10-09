@@ -1,5 +1,6 @@
 package com.cgm.kube.config.handler;
 
+import com.cgm.kube.base.Constant;
 import com.cgm.kube.base.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDecisionManager;
@@ -25,6 +26,10 @@ public class CustomizeAccessDecisionManager implements AccessDecisionManager {
         for (ConfigAttribute ca : collection) {
             // 当前请求需要的权限
             String needRole = ca.getAttribute();
+            if (Constant.ROLE_ANONYMOUS.equals(needRole)) {
+                // 当需要的权限为匿名角色，直接返回
+                return;
+            }
             // 当前用户所具有的权限
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             for (GrantedAuthority authority : authorities) {

@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 @RestController
 @Api(tags = "用户")
 @RequestMapping("/api/user")
-public class UserController {
+public class SysUserController {
     @Resource
     private ISysUserService sysUserService;
 

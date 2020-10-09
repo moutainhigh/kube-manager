@@ -17,6 +17,14 @@ public class Constant {
      */
     public static final String ROLE_USER = "USER";
 
+    /**
+     * 匿名角色（未登录），源自Spring Security的定义
+     */
+    public static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
+
+    public static final String API_NORMAL = "/api/";
+    public static final String API_PUBLIC = "/api/public/";
+
     public static final int CODE_NOT_FOUND = 404;
     public static final int CODE_CONFLICT = 409;
 

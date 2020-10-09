@@ -1,7 +1,6 @@
 package com.cgm.kube.account.mapper;
 
 import com.cgm.kube.account.entity.SysUser;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
@@ -16,5 +15,5 @@ public interface SysUserMapper extends Mapper<SysUser> {
      * @param username 用户名
      * @return 用户
      */
-    SysUser selectByUsername(@Param("username") String username);
+    SysUser selectByUsername(String username);
 }

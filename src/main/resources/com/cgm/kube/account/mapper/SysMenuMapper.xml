@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cgm.kube.account.mapper.SysMenuMapper">
+    <resultMap type="com.cgm.kube.account.entity.SysMenu" id="BaseMap">
+    </resultMap>
+
+    <!--根据请求查询有权限的角色列表-->
+    <select id="listMenuByUserId" resultMap="BaseMap">
+        SELECT
+            sm.id, sm.code, sm.path, sm.description
+        FROM sys_menu sm
+        WHERE EXISTS(
+            SELECT 0
+            FROM sys_role_menu srm
+            WHERE sm.id = srm.menu_id
+                AND EXISTS(
+                    SELECT 0
+                    FROM sys_user_role sur
+                    WHERE sur.user_id = #{userId}
+                        AND srm.role_id = sur.role_id
+                )
+        )
+    </select>
+
+    <select id="listMenuByRoleCode" resultMap="BaseMap">
+        SELECT
+            sm.id, sm.code, sm.path, sm.description
+        FROM sys_menu sm
+        WHERE EXISTS(
+            SELECT 0
+            FROM sys_role_menu srm
+            WHERE srm.menu_id = sm.id
+                AND srm.role_id = (
+                    SELECT id
+                    FROM sys_role sr
+                    WHERE sr.code = #{roleCode}
+                )
+        )
+    </select>
+
+</mapper>

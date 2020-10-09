@@ -1,7 +1,6 @@
 package com.cgm.kube.account.mapper;
 
 import com.cgm.kube.account.entity.SysRole;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.common.Mapper;
 
@@ -18,5 +17,5 @@ public interface SysRoleMapper extends Mapper<SysRole> {
      * @param userId 用户id
      * @return 角色列表
      */
-    List<SysRole> listRolesByUserId(@Param("userId") Long userId);
+    List<SysRole> listRolesByUserId(Long userId);
 }
